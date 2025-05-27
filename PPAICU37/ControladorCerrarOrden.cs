@@ -91,6 +91,14 @@ namespace PPAICU37
             ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, SismografoAfectado = sismo1 });
             ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2, SismografoAfectado = sismo1 });
 
+            // Usuarios
+            var usuarioLogueado = new Usuario
+            {
+                NombreUsuario = "jperez",
+                Contrasena = "123",
+                EmpleadoAsociado = empleado1
+            };
+
             // Asignar las órdenes a la lista que usa el controlador para las operaciones.
             // En un escenario real, estas se obtendrían de una fuente de datos.
             this.Ordenes = ordenesGlobales;
