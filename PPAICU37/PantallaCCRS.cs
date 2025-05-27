@@ -45,12 +45,22 @@ namespace PPAICU37
             {
                 lstMotivos.Items.Add("Sin motivos detallados.");
             }
-            txtComentariosAdicionales.Text = $"Observación Cierre Orden: {observacionCierre}";
+            lblComentarios.Text = $"Observación Cierre Orden: {observacionCierre}";
         }
 
         private void btnOkCCRS_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void lblIdSismografo_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lstMotivos_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -28,116 +28,130 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dgvOrdenesInspeccion = new DataGridView();
-            txtObservacionCierre = new TextBox();
+            grillaOrdenes = new DataGridView();
+            txtObservacion = new TextBox();
             cmbTiposMotivo = new ComboBox();
-            txtComentarioMotivo = new TextBox();
-            dgvMotivosFueraServicio = new DataGridView();
+            txtComentario = new TextBox();
+            grillaMotivos = new DataGridView();
             btnAgregarMotivo = new Button();
-            btnCerrarOrden = new Button();
+            btnConfirmar = new Button();
             btnCancelar = new Button();
-            btnIniciarSesionSimulado = new Button();
+            btnIniciarSesion = new Button();
             btnSeleccionarOrden = new Button();
             btnConfirmarObservacion = new Button();
-            ((System.ComponentModel.ISupportInitialize)dgvOrdenesInspeccion).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dgvMotivosFueraServicio).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)grillaOrdenes).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)grillaMotivos).BeginInit();
             SuspendLayout();
             // 
-            // dgvOrdenesInspeccion
+            // grillaOrdenes
             // 
-            dgvOrdenesInspeccion.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvOrdenesInspeccion.Location = new Point(88, 42);
-            dgvOrdenesInspeccion.Name = "dgvOrdenesInspeccion";
-            dgvOrdenesInspeccion.Size = new Size(511, 150);
-            dgvOrdenesInspeccion.TabIndex = 0;
-            dgvOrdenesInspeccion.SelectionChanged += dgvOrdenesInspeccion_SelectionChanged;
+            grillaOrdenes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            grillaOrdenes.Location = new Point(38, 113);
+            grillaOrdenes.Margin = new Padding(3, 4, 3, 4);
+            grillaOrdenes.Name = "grillaOrdenes";
+            grillaOrdenes.RowHeadersWidth = 51;
+            grillaOrdenes.Size = new Size(584, 200);
+            grillaOrdenes.TabIndex = 0;
+            grillaOrdenes.SelectionChanged += dgvOrdenesInspeccion_SelectionChanged;
             // 
-            // txtObservacionCierre
+            // txtObservacion
             // 
-            txtObservacionCierre.Location = new Point(109, 280);
-            txtObservacionCierre.Name = "txtObservacionCierre";
-            txtObservacionCierre.Size = new Size(228, 23);
-            txtObservacionCierre.TabIndex = 1;
+            txtObservacion.Location = new Point(125, 373);
+            txtObservacion.Margin = new Padding(3, 4, 3, 4);
+            txtObservacion.Name = "txtObservacion";
+            txtObservacion.Size = new Size(260, 27);
+            txtObservacion.TabIndex = 1;
             // 
             // cmbTiposMotivo
             // 
             cmbTiposMotivo.FormattingEnabled = true;
-            cmbTiposMotivo.Location = new Point(504, 407);
+            cmbTiposMotivo.Location = new Point(576, 479);
+            cmbTiposMotivo.Margin = new Padding(3, 4, 3, 4);
             cmbTiposMotivo.Name = "cmbTiposMotivo";
-            cmbTiposMotivo.Size = new Size(121, 23);
+            cmbTiposMotivo.Size = new Size(138, 28);
             cmbTiposMotivo.TabIndex = 2;
             cmbTiposMotivo.SelectedIndexChanged += cmbTiposMotivo_SelectedIndexChanged;
             // 
-            // txtComentarioMotivo
+            // txtComentario
             // 
-            txtComentarioMotivo.Location = new Point(515, 452);
-            txtComentarioMotivo.Name = "txtComentarioMotivo";
-            txtComentarioMotivo.Size = new Size(100, 23);
-            txtComentarioMotivo.TabIndex = 3;
+            txtComentario.Location = new Point(589, 539);
+            txtComentario.Margin = new Padding(3, 4, 3, 4);
+            txtComentario.Name = "txtComentario";
+            txtComentario.Size = new Size(114, 27);
+            txtComentario.TabIndex = 3;
             // 
-            // dgvMotivosFueraServicio
+            // grillaMotivos
             // 
-            dgvMotivosFueraServicio.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvMotivosFueraServicio.Location = new Point(33, 382);
-            dgvMotivosFueraServicio.Name = "dgvMotivosFueraServicio";
-            dgvMotivosFueraServicio.Size = new Size(448, 150);
-            dgvMotivosFueraServicio.TabIndex = 4;
+            grillaMotivos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            grillaMotivos.Location = new Point(38, 445);
+            grillaMotivos.Margin = new Padding(3, 4, 3, 4);
+            grillaMotivos.Name = "grillaMotivos";
+            grillaMotivos.RowHeadersWidth = 51;
+            grillaMotivos.Size = new Size(512, 200);
+            grillaMotivos.TabIndex = 4;
             // 
             // btnAgregarMotivo
             // 
-            btnAgregarMotivo.Location = new Point(659, 438);
+            btnAgregarMotivo.Location = new Point(734, 515);
+            btnAgregarMotivo.Margin = new Padding(3, 4, 3, 4);
             btnAgregarMotivo.Name = "btnAgregarMotivo";
-            btnAgregarMotivo.Size = new Size(75, 23);
+            btnAgregarMotivo.Size = new Size(86, 31);
             btnAgregarMotivo.TabIndex = 5;
             btnAgregarMotivo.Text = "Agregar";
             btnAgregarMotivo.UseVisualStyleBackColor = true;
             btnAgregarMotivo.Click += btnAgregarMotivo_Click;
             // 
-            // btnCerrarOrden
+            // btnConfirmar
             // 
-            btnCerrarOrden.Location = new Point(574, 624);
-            btnCerrarOrden.Name = "btnCerrarOrden";
-            btnCerrarOrden.Size = new Size(102, 23);
-            btnCerrarOrden.TabIndex = 6;
-            btnCerrarOrden.Text = "Cerrar Orden";
-            btnCerrarOrden.UseVisualStyleBackColor = true;
-            btnCerrarOrden.Click += btnCerrarOrden_Click;
+            btnConfirmar.Location = new Point(609, 677);
+            btnConfirmar.Margin = new Padding(3, 4, 3, 4);
+            btnConfirmar.Name = "btnConfirmar";
+            btnConfirmar.RightToLeft = RightToLeft.No;
+            btnConfirmar.Size = new Size(117, 31);
+            btnConfirmar.TabIndex = 6;
+            btnConfirmar.Text = "Confirmar";
+            btnConfirmar.UseVisualStyleBackColor = true;
+            btnConfirmar.Click += btnCerrarOrden_Click;
             // 
             // btnCancelar
             // 
-            btnCancelar.Location = new Point(702, 624);
+            btnCancelar.Location = new Point(755, 677);
+            btnCancelar.Margin = new Padding(3, 4, 3, 4);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(75, 23);
+            btnCancelar.Size = new Size(86, 31);
             btnCancelar.TabIndex = 7;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = true;
             btnCancelar.Click += btnCancelar_Click;
             // 
-            // btnIniciarSesionSimulado
+            // btnIniciarSesion
             // 
-            btnIniciarSesionSimulado.Location = new Point(632, 77);
-            btnIniciarSesionSimulado.Name = "btnIniciarSesionSimulado";
-            btnIniciarSesionSimulado.Size = new Size(102, 23);
-            btnIniciarSesionSimulado.TabIndex = 8;
-            btnIniciarSesionSimulado.Text = "Iniciar";
-            btnIniciarSesionSimulado.UseVisualStyleBackColor = true;
-            btnIniciarSesionSimulado.Click += btnIniciarSesionSimulado_Click;
+            btnIniciarSesion.Location = new Point(199, 36);
+            btnIniciarSesion.Margin = new Padding(3, 4, 3, 4);
+            btnIniciarSesion.Name = "btnIniciarSesion";
+            btnIniciarSesion.Size = new Size(260, 31);
+            btnIniciarSesion.TabIndex = 8;
+            btnIniciarSesion.Text = "Iniciar sesión";
+            btnIniciarSesion.UseVisualStyleBackColor = true;
+            btnIniciarSesion.Click += btnIniciarSesionSimulado_Click;
             // 
             // btnSeleccionarOrden
             // 
-            btnSeleccionarOrden.Location = new Point(413, 212);
+            btnSeleccionarOrden.Location = new Point(650, 281);
+            btnSeleccionarOrden.Margin = new Padding(3, 4, 3, 4);
             btnSeleccionarOrden.Name = "btnSeleccionarOrden";
-            btnSeleccionarOrden.Size = new Size(75, 23);
+            btnSeleccionarOrden.Size = new Size(142, 32);
             btnSeleccionarOrden.TabIndex = 9;
-            btnSeleccionarOrden.Text = "Seleccionar";
+            btnSeleccionarOrden.Text = "Seleccionar orden";
             btnSeleccionarOrden.UseVisualStyleBackColor = true;
             btnSeleccionarOrden.Click += btnSeleccionarOrden_Click;
             // 
             // btnConfirmarObservacion
             // 
-            btnConfirmarObservacion.Location = new Point(362, 279);
+            btnConfirmarObservacion.Location = new Point(414, 372);
+            btnConfirmarObservacion.Margin = new Padding(3, 4, 3, 4);
             btnConfirmarObservacion.Name = "btnConfirmarObservacion";
-            btnConfirmarObservacion.Size = new Size(75, 23);
+            btnConfirmarObservacion.Size = new Size(172, 31);
             btnConfirmarObservacion.TabIndex = 10;
             btnConfirmarObservacion.Text = "Registrar Observacion";
             btnConfirmarObservacion.UseVisualStyleBackColor = true;
@@ -145,24 +159,25 @@
             // 
             // PantallaCerrarOrden
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(818, 678);
+            ClientSize = new Size(866, 732);
             Controls.Add(btnConfirmarObservacion);
             Controls.Add(btnSeleccionarOrden);
-            Controls.Add(btnIniciarSesionSimulado);
+            Controls.Add(btnIniciarSesion);
             Controls.Add(btnCancelar);
-            Controls.Add(btnCerrarOrden);
+            Controls.Add(btnConfirmar);
             Controls.Add(btnAgregarMotivo);
-            Controls.Add(dgvMotivosFueraServicio);
-            Controls.Add(txtComentarioMotivo);
+            Controls.Add(grillaMotivos);
+            Controls.Add(txtComentario);
             Controls.Add(cmbTiposMotivo);
-            Controls.Add(txtObservacionCierre);
-            Controls.Add(dgvOrdenesInspeccion);
+            Controls.Add(txtObservacion);
+            Controls.Add(grillaOrdenes);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "PantallaCerrarOrden";
             Text = "Form1";
-            ((System.ComponentModel.ISupportInitialize)dgvOrdenesInspeccion).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dgvMotivosFueraServicio).EndInit();
+            ((System.ComponentModel.ISupportInitialize)grillaOrdenes).EndInit();
+            ((System.ComponentModel.ISupportInitialize)grillaMotivos).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -180,5 +195,11 @@
         private Button btnIniciarSesionSimulado;
         private Button btnSeleccionarOrden;
         private Button btnConfirmarObservacion;
+        private Button btnConfirmar;
+        private TextBox txtObservacion;
+        private Button btnIniciarSesion;
+        private DataGridView grillaOrdenes;
+        private TextBox txtComentario;
+        private DataGridView grillaMotivos;
     }
 }

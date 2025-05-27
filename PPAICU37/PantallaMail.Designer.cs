@@ -34,85 +34,79 @@
             lstMotivosMail = new ListBox();
             txtComentariosMail = new TextBox();
             lblDestinatariosMail = new Label();
-            btnOkMail = new Button();
             SuspendLayout();
             // 
             // lblIdSismografoMail
             // 
             lblIdSismografoMail.AutoSize = true;
-            lblIdSismografoMail.Location = new Point(260, 63);
+            lblIdSismografoMail.Location = new Point(33, 65);
             lblIdSismografoMail.Name = "lblIdSismografoMail";
-            lblIdSismografoMail.Size = new Size(38, 15);
+            lblIdSismografoMail.Size = new Size(102, 20);
             lblIdSismografoMail.TabIndex = 0;
-            lblIdSismografoMail.Text = "label1";
+            lblIdSismografoMail.Text = "Id Sismografo";
+            lblIdSismografoMail.Click += lblIdSismografoMail_Click;
             // 
             // lblNombreEstadoMail
             // 
             lblNombreEstadoMail.AutoSize = true;
-            lblNombreEstadoMail.Location = new Point(260, 93);
+            lblNombreEstadoMail.Location = new Point(33, 102);
             lblNombreEstadoMail.Name = "lblNombreEstadoMail";
-            lblNombreEstadoMail.Size = new Size(38, 15);
+            lblNombreEstadoMail.Size = new Size(113, 20);
             lblNombreEstadoMail.TabIndex = 1;
-            lblNombreEstadoMail.Text = "label1";
+            lblNombreEstadoMail.Text = "Nombre estado";
             // 
             // lblFechaHoraActualMail
             // 
             lblFechaHoraActualMail.AutoSize = true;
-            lblFechaHoraActualMail.Location = new Point(260, 121);
+            lblFechaHoraActualMail.Location = new Point(33, 142);
             lblFechaHoraActualMail.Name = "lblFechaHoraActualMail";
-            lblFechaHoraActualMail.Size = new Size(38, 15);
+            lblFechaHoraActualMail.Size = new Size(125, 20);
             lblFechaHoraActualMail.TabIndex = 2;
-            lblFechaHoraActualMail.Text = "label1";
+            lblFechaHoraActualMail.Text = "Fecha hora actual";
+            lblFechaHoraActualMail.TextAlign = ContentAlignment.TopCenter;
             // 
             // lstMotivosMail
             // 
             lstMotivosMail.FormattingEnabled = true;
-            lstMotivosMail.ItemHeight = 15;
-            lstMotivosMail.Location = new Point(253, 158);
+            lstMotivosMail.Location = new Point(33, 188);
+            lstMotivosMail.Margin = new Padding(3, 4, 3, 4);
             lstMotivosMail.Name = "lstMotivosMail";
-            lstMotivosMail.Size = new Size(120, 94);
+            lstMotivosMail.Size = new Size(472, 124);
             lstMotivosMail.TabIndex = 3;
             // 
             // txtComentariosMail
             // 
-            txtComentariosMail.Location = new Point(257, 271);
+            txtComentariosMail.Location = new Point(38, 338);
+            txtComentariosMail.Margin = new Padding(3, 4, 3, 4);
             txtComentariosMail.Name = "txtComentariosMail";
-            txtComentariosMail.Size = new Size(100, 23);
+            txtComentariosMail.Size = new Size(321, 27);
             txtComentariosMail.TabIndex = 4;
+            txtComentariosMail.TextChanged += txtComentariosMail_TextChanged;
             // 
             // lblDestinatariosMail
             // 
             lblDestinatariosMail.AutoSize = true;
-            lblDestinatariosMail.Location = new Point(279, 317);
+            lblDestinatariosMail.Location = new Point(33, 402);
             lblDestinatariosMail.Name = "lblDestinatariosMail";
-            lblDestinatariosMail.Size = new Size(38, 15);
+            lblDestinatariosMail.Size = new Size(96, 20);
             lblDestinatariosMail.TabIndex = 5;
-            lblDestinatariosMail.Text = "label1";
-            // 
-            // btnOkMail
-            // 
-            btnOkMail.Location = new Point(359, 340);
-            btnOkMail.Name = "btnOkMail";
-            btnOkMail.Size = new Size(75, 23);
-            btnOkMail.TabIndex = 6;
-            btnOkMail.Text = "button1";
-            btnOkMail.UseVisualStyleBackColor = true;
-            btnOkMail.Click += btnOkMail_Click;
+            lblDestinatariosMail.Text = "Destinatarios";
             // 
             // PantallaMail
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Controls.Add(btnOkMail);
+            ClientSize = new Size(556, 481);
             Controls.Add(lblDestinatariosMail);
             Controls.Add(txtComentariosMail);
             Controls.Add(lstMotivosMail);
             Controls.Add(lblFechaHoraActualMail);
             Controls.Add(lblNombreEstadoMail);
             Controls.Add(lblIdSismografoMail);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "PantallaMail";
             Text = "PantallaMail";
+            Load += PantallaMail_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -125,6 +119,5 @@
         private ListBox lstMotivosMail;
         private TextBox txtComentariosMail;
         private Label lblDestinatariosMail;
-        private Button btnOkMail;
     }
 }

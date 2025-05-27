@@ -24,35 +24,35 @@ namespace PPAICU37
             HabilitarSeccionObservacion(false);    // txtObservacionCierre y btnConfirmarObservacion
             HabilitarSeccionMotivos(false);       // cmbTiposMotivo, txtComentarioMotivo, btnAgregarMotivo, dgvMotivosFueraServicio
 
-            btnCerrarOrden.Enabled = false;
+            btnConfirmar.Enabled = false;
             btnCancelar.Enabled = false; // Se habilita después del login
-            btnIniciarSesionSimulado.Enabled = true;
+            btnIniciarSesion.Enabled = true;
         }
 
         private void HabilitarSeccionSeleccionOrden(bool habilitar)
         {
-            dgvOrdenesInspeccion.Enabled = habilitar;
+            grillaOrdenes.Enabled = habilitar;
             // btnSeleccionarOrden se habilita solo cuando hay una fila seleccionada en la grilla
             if (!habilitar) btnSeleccionarOrden.Enabled = false;
         }
 
         private void HabilitarSeccionObservacion(bool habilitar)
         {
-            txtObservacionCierre.Enabled = habilitar;
+            txtObservacion.Enabled = habilitar;
             btnConfirmarObservacion.Enabled = habilitar;
             if (habilitar)
             {
                 // solicitarIngresoObservacion() - Se le da foco al txt
-                txtObservacionCierre.Focus();
+                txtObservacion.Focus();
             }
         }
 
         private void HabilitarSeccionMotivos(bool habilitar)
         {
             cmbTiposMotivo.Enabled = habilitar;
-            txtComentarioMotivo.Enabled = habilitar;
+            txtComentario.Enabled = habilitar;
             btnAgregarMotivo.Enabled = habilitar;
-            dgvMotivosFueraServicio.Enabled = habilitar;
+            grillaMotivos.Enabled = habilitar;
         }
 
         private void btnIniciarSesionSimulado_Click(object sender, EventArgs e)
@@ -64,7 +64,7 @@ namespace PPAICU37
                 btnCancelar.Enabled = true;
                 mostrarOrdenes();
                 cargarTiposMotivoComboBox(); // Podemos cargarlos aquí una vez
-                btnIniciarSesionSimulado.Enabled = false;
+                btnIniciarSesion.Enabled = false;
             }
             else
             {
@@ -74,7 +74,7 @@ namespace PPAICU37
 
         private void mostrarOrdenes()
         {
-            dgvOrdenesInspeccion.DataSource = null;
+            grillaOrdenes.DataSource = null;
             _ordenTemporalmenteSeleccionadaEnGrilla = null; // Resetear la selección temporal
             btnSeleccionarOrden.Enabled = false; // Deshabilitar hasta nueva selección en grilla
 
@@ -86,7 +86,7 @@ namespace PPAICU37
                     FechaFinalizacion = o.FechaHoraFinalizacion?.ToString("g"),
                     Estado = o.EstadoActual?.NombreEstado
                 }).ToList();
-                dgvOrdenesInspeccion.DataSource = ordenesParaMostrar;
+                grillaOrdenes.DataSource = ordenesParaMostrar;
             }
             else
             {
@@ -95,7 +95,7 @@ namespace PPAICU37
             // Deshabilitar las siguientes secciones hasta que se seleccione una orden explícitamente
             HabilitarSeccionObservacion(false);
             HabilitarSeccionMotivos(false);
-            btnCerrarOrden.Enabled = false;
+            btnConfirmar.Enabled = false;
         }
 
         private void cargarTiposMotivoComboBox()
@@ -108,9 +108,9 @@ namespace PPAICU37
         // Evento cuando cambia la selección en la grilla de órdenes
         private void dgvOrdenesInspeccion_SelectionChanged(object sender, EventArgs e)
         {
-            if (dgvOrdenesInspeccion.CurrentRow != null && dgvOrdenesInspeccion.CurrentRow.DataBoundItem != null)
+            if (grillaOrdenes.CurrentRow != null && grillaOrdenes.CurrentRow.DataBoundItem != null)
             {
-                var selectedRowItem = dgvOrdenesInspeccion.CurrentRow.DataBoundItem;
+                var selectedRowItem = grillaOrdenes.CurrentRow.DataBoundItem;
                 int numeroOrdenSeleccionada = (int)selectedRowItem.GetType().GetProperty("NumeroOrden").GetValue(selectedRowItem, null);
                 // Guardamos la orden seleccionada en la grilla temporalmente
                 _ordenTemporalmenteSeleccionadaEnGrilla = _controlador.Ordenes.FirstOrDefault(o => o.NumeroOrden == numeroOrdenSeleccionada);
@@ -142,16 +142,16 @@ namespace PPAICU37
                 _controlador.tomarOrdenSeleccionada(_ordenTemporalmenteSeleccionadaEnGrilla); // Informa al controlador
 
                 // Limpiar campos para la nueva selección
-                txtObservacionCierre.Text = string.Empty;
-                txtComentarioMotivo.Text = string.Empty;
+                txtObservacion.Text = string.Empty;
+                txtComentario.Text = string.Empty;
                 _controlador.MotivosAgregados.Clear();
                 mostrarMotivosAgregados();
 
                 HabilitarSeccionObservacion(true); // Habilita txtObservacionCierre y btnConfirmarObservacion
                 HabilitarSeccionMotivos(false);    // La sección de motivos se habilita DESPUÉS de confirmar observación
-                btnCerrarOrden.Enabled = false;    // El botón final de cierre se habilita después de confirmar motivos
+                btnConfirmar.Enabled = false;    // El botón final de cierre se habilita después de confirmar motivos
 
-                dgvOrdenesInspeccion.Enabled = false; // Opcional: deshabilitar la grilla para evitar cambios
+                grillaOrdenes.Enabled = false; // Opcional: deshabilitar la grilla para evitar cambios
                 btnSeleccionarOrden.Enabled = false;  // Deshabilitar este botón una vez usado
             }
             else
@@ -164,7 +164,7 @@ namespace PPAICU37
         // Corresponde a los métodos `ingresarObservacion()` y `solicitarConfirmacion()` (parcial) del diagrama [cite: 1]
         private void btnConfirmarObservacion_Click(object sender, EventArgs e)
         {
-            string observacion = txtObservacionCierre.Text;
+            string observacion = txtObservacion.Text;
             if (string.IsNullOrWhiteSpace(observacion)) // Validación básica
             {
                 MessageBox.Show("La observación de cierre no puede estar vacía.", "Dato Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -176,7 +176,7 @@ namespace PPAICU37
             _controlador.tomarObservacionIngresada(observacion); // `ingresarObservacion()`
             MessageBox.Show("Observación de cierre registrada.", "Confirmado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            txtObservacionCierre.Enabled = false;         // Deshabilitar después de confirmar
+            txtObservacion.Enabled = false;         // Deshabilitar después de confirmar
             btnConfirmarObservacion.Enabled = false;    // Deshabilitar después de confirmar
 
             HabilitarSeccionMotivos(true); // Ahora habilitar la sección de motivos
@@ -198,17 +198,17 @@ namespace PPAICU37
         {
             if (cmbTiposMotivo.SelectedItem is MotivoTipo)
             {
-                _controlador.tomarComentarioIngresado(txtComentarioMotivo.Text);
+                _controlador.tomarComentarioIngresado(txtComentario.Text);
 
                 if (_controlador.agregarMotivoALista())
                 {
                     mostrarMotivosAgregados();
-                    txtComentarioMotivo.Clear();
+                    txtComentario.Clear();
                     cmbTiposMotivo.Focus();
                     // Después de agregar al menos un motivo, habilitar el botón de Cerrar Orden
                     if (_controlador.MotivosAgregados.Any())
                     {
-                        btnCerrarOrden.Enabled = true;
+                        btnConfirmar.Enabled = true;
                     }
                 }
                 else
@@ -224,10 +224,10 @@ namespace PPAICU37
 
         private void mostrarMotivosAgregados()
         {
-            dgvMotivosFueraServicio.DataSource = null;
+            grillaMotivos.DataSource = null;
             if (_controlador.MotivosAgregados.Any())
             {
-                dgvMotivosFueraServicio.DataSource = _controlador.MotivosAgregados.Select(m => new
+                grillaMotivos.DataSource = _controlador.MotivosAgregados.Select(m => new
                 {
                     DescripcionMotivo = m.Tipo.Descripcion,
                     m.Comentario
@@ -308,8 +308,8 @@ namespace PPAICU37
                     ConfigurarEstadoInicialUI(); // Volver al estado inicial para una nueva operación
                     mostrarOrdenes(); // Recargar la grilla de órdenes (estará vacía o con nuevas órdenes si la lógica lo permite)
                     HabilitarSeccionSeleccionOrden(true); // Permitir seleccionar otra orden
-                    dgvOrdenesInspeccion.Enabled = true;
-                    txtObservacionCierre.Clear();
+                    grillaOrdenes.Enabled = true;
+                    txtObservacion.Clear();
                     mostrarMotivosAgregados(); // Limpiar la grilla de motivos
                 }
                 else

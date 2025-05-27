@@ -32,74 +32,66 @@
             lblNombreEstado = new Label();
             lblFechaHoraActual = new Label();
             lstMotivos = new ListBox();
-            txtComentariosAdicionales = new TextBox();
-            btnOKCCRS = new Button();
+            lblComentarios = new TextBox();
             SuspendLayout();
             // 
             // lblIdSismografo
             // 
             lblIdSismografo.AutoSize = true;
-            lblIdSismografo.Location = new Point(257, 53);
+            lblIdSismografo.Location = new Point(27, 34);
             lblIdSismografo.Name = "lblIdSismografo";
-            lblIdSismografo.Size = new Size(38, 15);
+            lblIdSismografo.Size = new Size(102, 20);
             lblIdSismografo.TabIndex = 0;
-            lblIdSismografo.Text = "label1";
+            lblIdSismografo.Text = "Id Sismografo";
+            lblIdSismografo.Click += lblIdSismografo_Click;
             // 
             // lblNombreEstado
             // 
             lblNombreEstado.AutoSize = true;
-            lblNombreEstado.Location = new Point(257, 82);
+            lblNombreEstado.Location = new Point(27, 74);
             lblNombreEstado.Name = "lblNombreEstado";
-            lblNombreEstado.Size = new Size(38, 15);
+            lblNombreEstado.Size = new Size(113, 20);
             lblNombreEstado.TabIndex = 1;
-            lblNombreEstado.Text = "label1";
+            lblNombreEstado.Text = "Nombre estado";
             // 
             // lblFechaHoraActual
             // 
             lblFechaHoraActual.AutoSize = true;
-            lblFechaHoraActual.Location = new Point(257, 115);
+            lblFechaHoraActual.Location = new Point(27, 119);
             lblFechaHoraActual.Name = "lblFechaHoraActual";
-            lblFechaHoraActual.Size = new Size(38, 15);
+            lblFechaHoraActual.Size = new Size(125, 20);
             lblFechaHoraActual.TabIndex = 2;
-            lblFechaHoraActual.Text = "label1";
+            lblFechaHoraActual.Text = "Fecha hora actual";
             // 
             // lstMotivos
             // 
             lstMotivos.FormattingEnabled = true;
-            lstMotivos.ItemHeight = 15;
-            lstMotivos.Location = new Point(240, 155);
+            lstMotivos.Location = new Point(27, 171);
+            lstMotivos.Margin = new Padding(3, 4, 3, 4);
             lstMotivos.Name = "lstMotivos";
-            lstMotivos.Size = new Size(120, 94);
+            lstMotivos.Size = new Size(480, 124);
             lstMotivos.TabIndex = 3;
+            lstMotivos.SelectedIndexChanged += lstMotivos_SelectedIndexChanged;
             // 
-            // txtComentariosAdicionales
+            // lblComentarios
             // 
-            txtComentariosAdicionales.Location = new Point(257, 268);
-            txtComentariosAdicionales.Name = "txtComentariosAdicionales";
-            txtComentariosAdicionales.Size = new Size(100, 23);
-            txtComentariosAdicionales.TabIndex = 4;
-            // 
-            // btnOKCCRS
-            // 
-            btnOKCCRS.Location = new Point(578, 310);
-            btnOKCCRS.Name = "btnOKCCRS";
-            btnOKCCRS.Size = new Size(75, 23);
-            btnOKCCRS.TabIndex = 5;
-            btnOKCCRS.Text = "button1";
-            btnOKCCRS.UseVisualStyleBackColor = true;
-            btnOKCCRS.Click += btnOkCCRS_Click;
+            lblComentarios.Location = new Point(27, 321);
+            lblComentarios.Margin = new Padding(3, 4, 3, 4);
+            lblComentarios.Name = "lblComentarios";
+            lblComentarios.Size = new Size(366, 27);
+            lblComentarios.TabIndex = 4;
             // 
             // PantallaCCRS
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Controls.Add(btnOKCCRS);
-            Controls.Add(txtComentariosAdicionales);
+            ClientSize = new Size(538, 406);
+            Controls.Add(lblComentarios);
             Controls.Add(lstMotivos);
             Controls.Add(lblFechaHoraActual);
             Controls.Add(lblNombreEstado);
             Controls.Add(lblIdSismografo);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "PantallaCCRS";
             Text = "PantallaCCRS";
             ResumeLayout(false);
@@ -112,7 +104,6 @@
         private Label lblNombreEstado;
         private Label lblFechaHoraActual;
         private ListBox lstMotivos;
-        private TextBox txtComentariosAdicionales;
-        private Button btnOKCCRS;
+        private TextBox lblComentarios;
     }
 }

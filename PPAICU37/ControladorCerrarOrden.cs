@@ -8,6 +8,7 @@ namespace PPAICU37
 {
     public class ControladorCerrarOrden
     {
+        //private OrdenDeInspeccion _ordenTemporalmenteSeleccionadaEnGrilla;
         public OrdenDeInspeccion OrdenSeleccionada { get; private set; }
         public string ObservacionIngresada { get; private set; }
         public Empleado ResponsableLogueado { get; private set; }

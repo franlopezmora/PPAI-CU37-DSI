@@ -63,5 +63,20 @@ namespace PPAICU37
         {
             this.Close();
         }
+
+        private void PantallaMail_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblIdSismografoMail_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtComentariosMail_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
