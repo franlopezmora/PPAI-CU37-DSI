@@ -28,5 +28,12 @@ namespace PPAICU37
         {
             return UsuarioLogueado;
         }
-    }
+        public Empleado ObtenerEmpleadoLogueado()
+        {
+            if (UsuarioLogueado == null)
+            throw new InvalidOperationException("No hay sesión iniciada.");
+
+            return UsuarioLogueado.getEmpleado();
+         }
+}
 }
