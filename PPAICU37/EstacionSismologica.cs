@@ -29,10 +29,11 @@ namespace PPAICU37
         //      }
         //  }
 
-        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
-            Sismografo sismografoAsociado = buscarIdSismografo(sismografos);
-            sismografoAsociado.ponerSismografoFueraDeServicio(fechaHora, motivos, estadoFueraServicio);         
+            Sismografo sismografoAsociado = buscarSismografo(sismografos);
+
+            sismografoAsociado.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio);         
 
         }
 
@@ -41,11 +42,16 @@ namespace PPAICU37
             return NombreEstacion;
         }
 
-        public Sismografo buscarIdSismografo(IEnumerable<Sismografo> sismografos)
+        public string buscarIdSismografo(IEnumerable<Sismografo> sismografos)
         {
             Sismografo sismografo = sismografos.FirstOrDefault(s => s.Estacion == this);
+            string idSismografo = sismografo.getidSismografo(); // Asegura que se obtenga el ID del sismógrafo asociado a la estación
             //    return sismografo.getidSismografo();
-            return sismografo;
+            return idSismografo;
+        }
+        public Sismografo buscarSismografo(IEnumerable<Sismografo> sismografos)
+        {
+            return sismografos.FirstOrDefault(s => s.Estacion == this);
         }
     }
 }

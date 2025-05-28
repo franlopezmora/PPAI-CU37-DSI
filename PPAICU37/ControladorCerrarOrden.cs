@@ -14,8 +14,9 @@ namespace PPAICU37
         public Empleado ResponsableLogueado { get; private set; }
         public List<OrdenDeInspeccion> Ordenes { get; private set; }
         public MotivoTipo MotivoSeleccionado { get; private set; }
-        public List<MotivoFueraServicio> MotivosAgregados { get; private set; }
         public string ComentarioMotivoIngresado { get; private set; }
+
+        public bool confirmacionRegistrada { get; private set; } // Indica si el RI ha confirmado el cierre de la orden
 
         private List<Usuario> _usuariosRegistrados;
         private List<Empleado> _empleadosRegistrados;
@@ -25,11 +26,12 @@ namespace PPAICU37
         private Sesion _sesionActual;
         private EstacionSismologica _estacionSeleccionada;
         public List<Sismografo> _sismografos; // Lista de sismógrafos
+        public List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario;
 
 
         public ControladorCerrarOrden()
         {
-            MotivosAgregados = new List<MotivoFueraServicio>();
+            listaMotivosTipoComentario = new List<Tuple<string, MotivoTipo>>(); // Inicializa la lista de motivos y comentarios
             _usuariosRegistrados = new List<Usuario>();
             _empleadosRegistrados = new List<Empleado>();
             _estadosPosibles = new List<Estado>();
@@ -72,10 +74,10 @@ namespace PPAICU37
             _usuariosRegistrados.Add(usuario2);
 
             // MotivoTipos
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 1, Descripcion = "Falla de sensor" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 2, Descripcion = "Problema de alimentación" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 3, Descripcion = "Mantenimiento programado" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 4, Descripcion = "Otro" });
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (1, "Falla de sensor" ));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (2, "Problema de alimentación" ));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (3, "Mantenimiento programado"));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (4, "Otro"));
 
             // Estaciones y Sismógrafos
             var estacion1 = new EstacionSismologica { CodigoEstacion = "EST001", NombreEstacion = "Central Cordobesa" };
@@ -118,7 +120,7 @@ namespace PPAICU37
         public IReadOnlyList<Sismografo> Sismografos
             => _sismografos.AsReadOnly();
 
-        public bool tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
+        public List<OrdenDeInspeccion> tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
         {
             if (opcion == "CERRAR_ORDEN_INSPECCION")
             {
@@ -135,14 +137,13 @@ namespace PPAICU37
                     ResponsableLogueado = buscarUsuario(_sesionActual);
                     // Console.WriteLine($"DEBUG: Usuario {ResponsableLogueado.NombreUsuario} logueado."); // Para depuración
 
-                    buscarOrdenInspeccion(); // Carga las órdenes elegibles
+                    List<OrdenDeInspeccion> OrdenesFiltradas = buscarOrdenInspeccion(); // Carga las órdenes elegibles
 
-                    return true;
+                    return OrdenesFiltradas;
                 }
-                // Console.WriteLine($"DEBUG: Falla de login simulado."); // Para depuración
-                return false;
+                return null;
             }
-            return false;
+            return null;
         }
 
 
@@ -159,32 +160,45 @@ namespace PPAICU37
 
         }
 
-        public void buscarOrdenInspeccion() // Paso 2 CU
+        public List<OrdenDeInspeccion> buscarOrdenInspeccion() // Paso 2 CU
         {
             if (ResponsableLogueado == null)
             {
                 Ordenes = new List<OrdenDeInspeccion>(); // No hay usuario, no hay órdenes
-                return;
+                return Ordenes;
             }
+
             // Filtra órdenes "completamente realizadas" [cite: 2]
             // El CU dice "todas las órdenes de inspección del RI que están en estado completamente realizadas" [cite: 2]
             // Asumimos que el RI es el ResponsableLogueado.
-            Ordenes = Ordenes
-                .Where(o => o.EstadoActual.esCompletamenteRealizada() && o.esDeEmpleado(ResponsableLogueado)) // El filtro por empleado es opcional según interpretación del CU.
-                .ToList();
-            ordenarPorFecha(); // CU: "ordenadas por fecha de finalización" [cite: 2]
-                               // Console.WriteLine($"DEBUG: Encontradas {Ordenes.Count} órdenes completamente realizadas para {ResponsableLogueado.NombreUsuario}."); // Para depuración
+
+            List<OrdenDeInspeccion> OrdenesFiltradas = new List<OrdenDeInspeccion>();
+
+            for (int i = 0; i < Ordenes.Count; i++)
+            {
+                OrdenDeInspeccion orden = Ordenes[i]; // Obtiene la orden actual
+
+                if (Ordenes[i].EstadoActual.esCompletamenteRealizada() && Ordenes[i].esDeEmpleado(ResponsableLogueado)) 
+                    {OrdenesFiltradas.Add(orden);}// Verifica si la orden es del empleado logueado
+
+                orden.getInfoOrdenInspeccion(_sismografos);
+            }
+
+            ordenarPorFecha(OrdenesFiltradas);
+
+            return OrdenesFiltradas; // Retorna la lista filtrada
+           
         }
 
-        public void ordenarPorFecha()
+        public void ordenarPorFecha(List<OrdenDeInspeccion> OrdenesFiltradas)
         {
-            Ordenes = Ordenes.OrderByDescending(o => o.FechaHoraFinalizacion ?? DateTime.MinValue).ToList();
+            OrdenesFiltradas = OrdenesFiltradas.OrderByDescending(o => o.FechaHoraFinalizacion ?? DateTime.MinValue).ToList();
         }
 
         public void tomarOrdenSeleccionada(OrdenDeInspeccion orden) // Paso 3 CU [cite: 2]
         {
             OrdenSeleccionada = orden;
-            MotivosAgregados.Clear();
+            listaMotivosTipoComentario.Clear();
             ObservacionIngresada = string.Empty;
             ComentarioMotivoIngresado = string.Empty;
             MotivoSeleccionado = null;
@@ -194,48 +208,61 @@ namespace PPAICU37
         public void tomarObservacionIngresada(string observacion) // Paso 5 CU [cite: 2]
         {
             ObservacionIngresada = observacion;
-            // Console.WriteLine($"DEBUG: Observación ingresada: {observacion}"); // Para depuración
         }
 
-        public List<MotivoTipo> buscarMotivos() // Paso 6 CU (cargar tipos para UI) [cite: 2]
+        public List<MotivoTipo> buscarTiposMotivos() // Paso 6 CU (cargar tipos para UI) [cite: 2]
         {
-            return cargarTiposMotivos();
-        }
-        public List<MotivoTipo> cargarTiposMotivos()
-        {
-            return _tiposDeMotivoDisponibles;
+
+            List<MotivoTipo> listaMotivosEncontrados = new List<MotivoTipo>();
+            List<MotivoTipo> motivos = _tiposDeMotivoDisponibles;
+
+            for (int i = 0; i < motivos.Count; i++)
+            {
+                MotivoTipo motivo = motivos[i];
+                MotivoTipo motivoEncontrado = motivo.buscarMotivoTipo();
+                listaMotivosEncontrados.Add(motivoEncontrado);
+                // Console.WriteLine($"DEBUG: MotivoTipo {i + 1}: {motivos[i].Descripcion}"); // Para depuración
+            }
+           
+            return listaMotivosEncontrados;
         }
 
 
         public void tomarMotivoSeleccionado(MotivoTipo motivoTipo) // Paso 7 CU (selección de tipo) [cite: 2]
         {
             MotivoSeleccionado = motivoTipo;
-            // Console.WriteLine($"DEBUG: MotivoTipo seleccionado: {motivoTipo?.Descripcion}"); // Para depuración
         }
 
         public void tomarComentarioIngresado(string comentario) // Paso 7 CU (ingreso de comentario para motivo) [cite: 2]
         {
             ComentarioMotivoIngresado = comentario;
-            // Console.WriteLine($"DEBUG: Comentario para motivo ingresado: {comentario}"); // Para depuración
         }
 
-        public bool agregarMotivoALista() // Acción de UI para agregar un motivo a la lista temporal
+        public List<Tuple<string, MotivoTipo>> agregarMotivoALista() // Acción de UI para agregar un motivo a la lista temporal
         {
-            if (MotivoSeleccionado != null && !string.IsNullOrWhiteSpace(ComentarioMotivoIngresado))
-            {
-                var nuevoMotivo = new MotivoFueraServicio(MotivoSeleccionado, ComentarioMotivoIngresado);
-                MotivosAgregados.Add(nuevoMotivo);
-                // Console.WriteLine($"DEBUG: Motivo '{MotivoSeleccionado.Descripcion}' con comentario '{ComentarioMotivoIngresado}' agregado."); // Para depuración
-                ComentarioMotivoIngresado = string.Empty; // Limpiar para el próximo
-                return true;
-            }
-            // Console.WriteLine($"DEBUG: Falla al agregar motivo. Motivo: {MotivoSeleccionado != null}, Comentario: {!string.IsNullOrWhiteSpace(ComentarioMotivoIngresado)}"); // Para depuración
-            return false;
+            listaMotivosTipoComentario.Add(new Tuple<string, MotivoTipo>(ComentarioMotivoIngresado, MotivoSeleccionado));
+            return listaMotivosTipoComentario;
+
+            //if (MotivoSeleccionado != null && !string.IsNullOrWhiteSpace(ComentarioMotivoIngresado))
+            //{
+            //    var nuevoMotivo = new MotivoFueraServicio(MotivoSeleccionado, ComentarioMotivoIngresado);
+            //    MotivosAgregados.Add(nuevoMotivo);
+            //    ComentarioMotivoIngresado = string.Empty; // Limpiar para el próximo
+            //    return true;
+            //}
+            //return false;
         }
 
-        public void tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre [cite: 2]
+        public bool tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre [cite: 2]
         {
-            // Console.WriteLine($"DEBUG: Confirmación de cierre registrada por el usuario."); // Para depuración
+            confirmacionRegistrada = true; // Marca que el RI ha confirmado el cierre de la orden
+            bool validacionObs = validarObservacion();
+            bool validacionMotivoCom = validarMotivoSeleccionado();
+            Estado estadoCerrado = buscarEstadoCerrado();
+            Estado estadoFueraServicio = buscarEstadoFueraServicio();
+            DateTime fechaActual = getFechaHoraActual();
+            bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, estadoFueraServicio, fechaActual);
+            return exitoCerrar;
         }
 
         public bool validarObservacion() // Paso 10 CU (parte 1) [cite: 2]
@@ -245,7 +272,7 @@ namespace PPAICU37
 
         public bool validarMotivoSeleccionado() // Paso 10 CU (parte 2) [cite: 2]
         {
-            return MotivosAgregados.Any();
+            return listaMotivosTipoComentario.Any();
         }
 
         public Estado buscarEstadoCerrado()
@@ -262,17 +289,13 @@ namespace PPAICU37
             return DateTime.Now;
         }
 
-        public bool cerrarOrden() // Lógica principal de cierre (Pasos 10, 11, 12 CU) [cite: 2]
+        public bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, Estado estadoCerrado, Estado estadoFueraServicio, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU) [cite: 2]
         {
-            if (OrdenSeleccionada == null || !validarObservacion() || !validarMotivoSeleccionado())
+            if (OrdenSeleccionada == null || !validacionObs || !validacionMotivoCom)
             {
                 // Console.WriteLine("Error: Validación fallida antes de cerrar orden."); // Para depuración
                 return false; // Validaciones fallaron
             }
-
-            DateTime fechaActual = getFechaHoraActual();
-            Estado estadoCerrado = buscarEstadoCerrado();
-            Estado estadoFueraServicio = buscarEstadoFueraServicio();
 
             if (estadoCerrado == null || estadoFueraServicio == null)
             {
@@ -285,7 +308,7 @@ namespace PPAICU37
 
             // Paso 12: Actualiza al sismógrafo como fuera de servicio, asociando motivos, fecha, y responsable [cite: 2]
 
-            ponerFueraServicio(); // Delegar lógica a la entidad OrdenDeInspeccion
+            ponerFueraServicio(estadoFueraServicio, fechaActual); // Delegar lógica a la entidad OrdenDeInspeccion
 
             //OrdenSeleccionada.ponerSismografoFueraDeServicio(fechaActual, MotivosAgregados, estadoFueraServicio); VIEJO CÓDIGO, NO USAR. ELIMINAR
 
@@ -297,9 +320,9 @@ namespace PPAICU37
 
         // El método ponerFueraServicio() del diagrama de clases del controlador [cite: 1]
         // es invocado conceptualmente a través de OrdenDeInspeccion.ponerSismografoFueraDeServicio()
-        public void ponerFueraServicio()
+        public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
         {
-            OrdenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), MotivosAgregados, buscarEstadoFueraServicio(), _sismografos);
+            OrdenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
 
             // Console.WriteLine($"DEBUG: Método ponerFueraServicio del controlador llamado (lógica delegada)."); // Para depuración
         }
@@ -319,13 +342,15 @@ namespace PPAICU37
         {
             if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return string.Empty;
 
-            Sismografo sismografo = OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos);
-            var estadoActualSismografo = sismografo.CambioEstadoActualSismografo;
 
-            string motivosStr = string.Join("; ", MotivosAgregados.Select(m => $"{m.Tipo.Descripcion}: {m.Comentario}"));
+            Sismografo sismografo = OrdenSeleccionada.EstacionSismologica.buscarSismografo(_sismografos);
+            var cambioEstadoActualSismografo = sismografo?.HistorialCambios.FirstOrDefault(h => h.esActual());
+
+            var listaTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
+            string motivosStr = string.Join("; ", listaTuplas.Select(t => $"{t.Item2.Descripcion}: {t.Item1}"));
 
             return $"Sismógrafo: {sismografo.IdentificadorSismografo}\n" +
-                   $"Nuevo Estado: {estadoActualSismografo?.EstadoAsociado.NombreEstado}\n" +
+                   $"Nuevo Estado: {cambioEstadoActualSismografo?.EstadoAsociado.NombreEstado}\n" +
                    $"Fecha y Hora: {getFechaHoraActual():g}\n" +
                    $"Motivos: {motivosStr}\n" +
                    $"Observación de Cierre Orden: {ObservacionIngresada}\n" +
@@ -346,14 +371,19 @@ namespace PPAICU37
                // Busco el Sismógrafo real desde la estación
             var sismografo = OrdenSeleccionada
                     .EstacionSismologica
-                    .buscarIdSismografo(_sismografos);
-            var estadoActual = sismografo?.CambioEstadoActualSismografo.EstadoAsociado;
+                    .buscarSismografo(_sismografos);
+
+            CambioEstado cambioEstadoActualSismografo = sismografo.HistorialCambios.FirstOrDefault(h => h.esActual());
+            var estadoActual = cambioEstadoActualSismografo.EstadoAsociado;
+
+
+            var motivosTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
 
             return new object[] {
             sismografo?.IdentificadorSismografo,
             estadoActual?.NombreEstado ?? "N/A",
             getFechaHoraActual(),
-            new List<MotivoFueraServicio>(MotivosAgregados), // Copia de la lista
+            motivosTuplas, // Copia de la lista
             ObservacionIngresada,
             _sismografos.AsReadOnly()
         };
@@ -364,7 +394,8 @@ namespace PPAICU37
             OrdenSeleccionada = null;
             ObservacionIngresada = string.Empty;
             MotivoSeleccionado = null;
-            MotivosAgregados.Clear();
+   //         MotivosAgregados.Clear();
+            listaMotivosTipoComentario.Clear();
             ComentarioMotivoIngresado = string.Empty;
             buscarOrdenInspeccion();
             // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.

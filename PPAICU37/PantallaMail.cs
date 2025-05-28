@@ -20,7 +20,7 @@ namespace PPAICU37
             InitializeComponent();
         }
 
-        public void CargarDatos(string idSismografo, string nombreEstado, DateTime fechaHora, List<MotivoFueraServicio> motivos, string observacionCierre, string destinatarios)
+        public void CargarDatos(string idSismografo, string nombreEstado, DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentarios, string observacionCierre, string destinatarios)
         {
             // Asignar a los controles de la UI, ej:
             // identificacionSismografo (Label en diagrama) -> lblIdSismografoMail.Text = idSismografo;
@@ -33,11 +33,13 @@ namespace PPAICU37
             lblFechaHoraActualMail.Text = $"Fecha y Hora: {fechaHora:g}";
 
             lstMotivosMail.Items.Clear();
-            if (motivos != null && motivos.Any())
+            if (listaMotivosTipoComentarios != null && listaMotivosTipoComentarios.Any())
             {
-                foreach (var motivo in motivos)
+                foreach (var tupla in listaMotivosTipoComentarios)
                 {
-                    lstMotivosMail.Items.Add($"Motivo: {motivo.Tipo.Descripcion} - Comentario: {motivo.Comentario}");
+                    string comentario = tupla.Item1;
+                    string descripcion = tupla.Item2.Descripcion;
+                    lstMotivosMail.Items.Add($"{descripcion}: {comentario}");
                 }
             }
             else

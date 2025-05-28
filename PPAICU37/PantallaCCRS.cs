@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,7 +19,7 @@ namespace PPAICU37
         }
 
         // actualizarMonitor() [cite: 1] - Adaptado para cargar datos
-        public void CargarDatos(string idSismo, string estado, DateTime fecha, List<MotivoFueraServicio> motivos, string observacion, IEnumerable<Sismografo> todosLosSismografos)
+        public void CargarDatos(string idSismo, string estado, DateTime fecha, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, string observacion, IEnumerable<Sismografo> todosLosSismografos)
         {
             // Asignar a los controles de la UI, ej:
             // identificacionSismografo (Label en diagrama) -> lblIdSismografo.Text = idSismografo;
@@ -35,11 +36,13 @@ namespace PPAICU37
             lblFechaHoraActual.Text = $"Fecha y Hora: {fecha:g}";
 
             lstMotivos.Items.Clear();
-            if (motivos != null && motivos.Any())
+            if (listaMotivosTipoComentario != null && listaMotivosTipoComentario.Any())
             {
-                foreach (var motivo in motivos)
+                foreach (var tupla in listaMotivosTipoComentario)
                 {
-                    lstMotivos.Items.Add($"Motivo: {motivo.Tipo.Descripcion} - Comentario: {motivo.Comentario}");
+                    string comentario = tupla.Item1;
+                    string descripcion = tupla.Item2.Descripcion;
+                    lstMotivos.Items.Add($"{descripcion}: {comentario}");
                 }
             }
             else
