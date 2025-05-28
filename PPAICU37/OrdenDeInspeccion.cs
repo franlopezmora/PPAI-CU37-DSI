@@ -15,9 +15,8 @@ namespace PPAICU37
         public string ObservacionCierre { get; set; }
         public Estado EstadoActual { get; set; }
         public Empleado Responsable { get; set; }
-        public Sismografo SismografoAfectado { get; set; } // ELIMINAR ESTO URGENTE
+         //public Sismografo SismografoAfectado { get; set; } // ELIMINAR ESTO URGENTE
         public List<CambioEstado> HistorialCambiosEstado { get; set; }
-
         public EstacionSismologica EstacionSismologica { get; set; } // Relación con la estación sismológica
 
         public OrdenDeInspeccion()
@@ -35,9 +34,10 @@ namespace PPAICU37
             return EstadoActual != null && EstadoActual.esCompletamenteRealizada();
         }
 
-        public string getInfoOrdenInspeccion()
+        public string getInfoOrdenInspeccion(List<Sismografo> sismografos)
         {
-            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {SismografoAfectado?.IdentificadorSismografo}";
+            Sismografo sismografo = EstacionSismologica.buscarIdSismografo(sismografos);
+            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {sismografo?.IdentificadorSismografo}";
         }
 
         public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
@@ -48,19 +48,9 @@ namespace PPAICU37
             // Console.WriteLine($"DEBUG: Orden {NumeroOrden} registrada como cerrada."); // Para depuración
         }
 
-        public CambioEstado ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
             EstacionSismologica.ponerSismografoFueraDeServicio(sismografos);
-
-            if (SismografoAfectado != null)
-            {
-                // Console.WriteLine($"DEBUG: Orden {NumeroOrden} - Sismógrafo {SismografoAfectado.IdentificadorSismografo} puesto fuera de servicio."); // Para depuración
-                CambioEstado nuevoCambio = CambioEstado.crear(fechaHora, motivos, estadoFueraServicio);
-                HistorialCambiosEstado.Add(nuevoCambio); // Historial en la orden
-                SismografoAfectado.cambiarEstado(nuevoCambio); // Actualizar estado y registrar cambio en el sismógrafo
-                return nuevoCambio;
-            }
-            return null;
         }
     }
 }
