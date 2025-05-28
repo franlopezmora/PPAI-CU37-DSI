@@ -35,7 +35,8 @@ namespace PPAICU37
             Ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
             _estaciones = new List<EstacionSismologica>();
             CargarDatosDePrueba();
-            _sesionActual = new Sesion();
+            _sesionActual = null;
+            ResponsableLogueado = null; // Inicialmente no hay usuario logueado
 
         }
 
@@ -110,14 +111,19 @@ namespace PPAICU37
             {
                 // Simular login (Paso 2 del CU)
                 // En una app real, la UI de login llamaría a buscarUsuario o iniciarSesion.
-                var usuarioLogueado = buscarUsuario("jperez", "123"); // Simula login de jperez
+
+                var usuarioLogueado = login("jperez", "123"); // Simula login de jperez
+
                 if (usuarioLogueado != null)
                 {
                     _sesionActual = new Sesion();
                     _sesionActual.Iniciar(usuarioLogueado);
-                    ResponsableLogueado = _sesionActual.getUsuario().getEmpleado();
+
+                    ResponsableLogueado = buscarUsuario(_sesionActual);
                     // Console.WriteLine($"DEBUG: Usuario {ResponsableLogueado.NombreUsuario} logueado."); // Para depuración
+
                     buscarOrdenInspeccion(); // Carga las órdenes elegibles
+
                     return true;
                 }
                 // Console.WriteLine($"DEBUG: Falla de login simulado."); // Para depuración
@@ -126,7 +132,13 @@ namespace PPAICU37
             return false;
         }
 
-        public Usuario buscarUsuario(string nombreUsuario, string contrasena)
+
+        public Usuario login(string nombreUsuario, string contrasena)
+        {
+            return _usuariosRegistrados.FirstOrDefault(u => u.NombreUsuario == nombreUsuario && u.Contrasena == contrasena);
+        }
+
+        public Empleado buscarUsuario(Sesion _sesionActual)
         {
             Empleado empleadoBuscado = _sesionActual.getUsuario().getEmpleado();
 
@@ -329,6 +341,7 @@ namespace PPAICU37
             MotivoSeleccionado = null;
             MotivosAgregados.Clear();
             ComentarioMotivoIngresado = string.Empty;
+            buscarOrdenInspeccion();
             // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.
             // Ordenes se recargaría con buscarOrdenInspeccion() si es necesario para una nueva operación.
             // Console.WriteLine("DEBUG: Fin del Caso de Uso. Estado del controlador parcialmente reseteado."); // Para depuración
