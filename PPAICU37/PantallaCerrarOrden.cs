@@ -87,6 +87,8 @@ namespace PPAICU37
             HabilitarSeccionObservacion(false);
             HabilitarSeccionMotivos(false);
             btnConfirmar.Enabled = false;
+            btnCancelar.Enabled = true; // Habilitar el botón cancelar después del login
+            btnIniciarSesion.Enabled = false;
         }
 
 
@@ -181,26 +183,41 @@ namespace PPAICU37
         // Evento cuando cambia el tipo de motivo seleccionado
         private void btnAgregarMotivo_Click(object sender, EventArgs e)
         {
-            if (cmbTiposMotivo.SelectedItem is MotivoTipo motivoTipoSeleccionado && txtComentario != null)
+            string comentario = txtComentario.Text;
+            if (!(cmbTiposMotivo.SelectedItem is MotivoTipo motivoTipoSeleccionado))
             {
-                _controlador.tomarMotivoSeleccionado(motivoTipoSeleccionado);
-                _controlador.tomarComentarioIngresado(txtComentario.Text);
-                List<Tuple<string, MotivoTipo>> lista = _controlador.agregarMotivoALista();
-
-                mostrarMotivosAgregados(lista);
-
-                txtComentario.Clear();
-                cmbTiposMotivo.Focus();
-
-                if (_controlador.listaMotivosTipoComentario.Any())
-                {
-                    btnConfirmar.Enabled = true;
-                }
-
+                MessageBox.Show(
+                    "Debe seleccionar un tipo de motivo.",
+                    "Dato incompleto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
             }
-            else
+
+            if (string.IsNullOrWhiteSpace(comentario))
             {
-                MessageBox.Show("Debe seleccionar un tipo de motivo y escribir un comentario.", "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Debe escribir un comentario para el motivo.",
+                    "Dato incompleto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                txtComentario.Focus();
+                return;
+            }
+            _controlador.tomarMotivoSeleccionado(motivoTipoSeleccionado);
+            _controlador.tomarComentarioIngresado(txtComentario.Text);
+            List<Tuple<string, MotivoTipo>> lista = _controlador.agregarMotivoALista();
+
+            mostrarMotivosAgregados(lista);
+
+            txtComentario.Clear();
+            cmbTiposMotivo.Focus();
+
+            if (_controlador.listaMotivosTipoComentario.Any())
+            {
+                btnConfirmar.Enabled = true;
             }
         }
 
@@ -328,19 +345,20 @@ namespace PPAICU37
 
             // Resetear la UI a un estado similar al inicial después del login
             _ordenTemporalmenteSeleccionadaEnGrilla = null;
-            txtObservacionCierre.Clear();
+            txtObservacion.Clear();
             if (cmbTiposMotivo.Items.Count > 0) cmbTiposMotivo.SelectedIndex = -1;
-            txtComentarioMotivo.Clear();
+            txtComentario.Clear();
             // MotivosAgregados se limpian en finCU del controlador, aquí actualizamos la grilla
             mostrarMotivosAgregados(_controlador.listaMotivosTipoComentario);
 
             HabilitarSeccionSeleccionOrden(true); // Permitir volver a seleccionar orden
-            dgvOrdenesInspeccion.Enabled = true;  // Asegurarse que la grilla esté activa
-            if (dgvOrdenesInspeccion.Rows.Count > 0) dgvOrdenesInspeccion.ClearSelection();
+            grillaOrdenes.Enabled = true;  // Asegurarse que la grilla esté activa
+            if (grillaOrdenes.Rows.Count > 0) grillaOrdenes.ClearSelection();
 
             HabilitarSeccionObservacion(false);
             HabilitarSeccionMotivos(false);
-            btnCerrarOrden.Enabled = false;
+
+            btnConfirmar.Enabled = false;
 
             List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
             mostrarOrdenes(OrdenesFiltradas); // Recargar las órdenes disponibles
