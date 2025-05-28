@@ -28,7 +28,15 @@ namespace PPAICU37
         // Este método es invocado por OrdenDeInspeccion.ponerSismografoFueraDeServicio a través de Sismografo.cambiarEstado
         public void ponerSismografoFueraDeServicio()
         {
-            // La lógica principal se maneja en OrdenDeInspeccion y cambiarEstado
+            var cambioActualActivo = HistorialCambios.FirstOrDefault(h => h.esActual());
+            if (cambioActualActivo != null)
+            {
+                cambioActualActivo.finalizar(DateTime.Now); // Finaliza el estado actual con la fecha y hora actual
+            }
+            CambioEstado nuevoCambio = CambioEstado.crear(DateTime.Now, null, EstadoActualSismografo); // Crea un nuevo cambio sin motivos
+            HistorialCambios.Add(nuevoCambio); // Agrega el nuevo cambio al historial
+            this.EstadoActualSismografo = nuevoCambio.EstadoAsociado; // Actualiza el estado actual del sismógrafo
+
             // Console.WriteLine($"DEBUG: Sismógrafo {IdentificadorSismografo} marcado como fuera de servicio (método interno)."); // Para depuración
         }
 

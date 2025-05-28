@@ -15,8 +15,10 @@ namespace PPAICU37
         public string ObservacionCierre { get; set; }
         public Estado EstadoActual { get; set; }
         public Empleado Responsable { get; set; }
-        public Sismografo SismografoAfectado { get; set; }
+        public Sismografo SismografoAfectado { get; set; } // ELIMINAR ESTO URGENTE
         public List<CambioEstado> HistorialCambiosEstado { get; set; }
+
+        public EstacionSismologica EstacionSismologica { get; set; } // Relación con la estación sismológica
 
         public OrdenDeInspeccion()
         {
@@ -46,8 +48,10 @@ namespace PPAICU37
             // Console.WriteLine($"DEBUG: Orden {NumeroOrden} registrada como cerrada."); // Para depuración
         }
 
-        public CambioEstado ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio)
+        public CambioEstado ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
+            EstacionSismologica.ponerSismografoFueraDeServicio(sismografos);
+
             if (SismografoAfectado != null)
             {
                 // Console.WriteLine($"DEBUG: Orden {NumeroOrden} - Sismógrafo {SismografoAfectado.IdentificadorSismografo} puesto fuera de servicio."); // Para depuración

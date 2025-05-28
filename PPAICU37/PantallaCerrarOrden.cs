@@ -11,6 +11,7 @@ namespace PPAICU37
         private ControladorCerrarOrden _controlador;
         private OrdenDeInspeccion _ordenTemporalmenteSeleccionadaEnGrilla; // Para guardar la selección de la grilla antes de confirmar con el botón
 
+
         public PantallaCerrarOrden()
         {
             InitializeComponent();
@@ -82,7 +83,7 @@ namespace PPAICU37
             {
                 var ordenesParaMostrar = _controlador.Ordenes.Select(o => new {
                     o.NumeroOrden,
-                    SismografoID = o.SismografoAfectado?.IdentificadorSismografo,
+                    SismografoID = o.EstacionSismologica.buscarIdSismografo(_controlador.Sismografos),
                     FechaFinalizacion = o.FechaHoraFinalizacion?.ToString("g"),
                     Estado = o.EstadoActual?.NombreEstado
                 }).ToList();
