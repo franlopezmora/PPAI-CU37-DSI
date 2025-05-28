@@ -281,7 +281,9 @@ namespace PPAICU37
                             (string)datosCCRS[1],
                             (DateTime)datosCCRS[2],
                             (List<MotivoFueraServicio>)datosCCRS[3],
-                            (string)datosCCRS[4]
+                            (string)datosCCRS[4],
+                            (IEnumerable<Sismografo>)datosCCRS[5] // Pasar la lista de sismógrafos para mostrar en CCRS si es necesario
+
                         );
                         pantallaCCRS.ShowDialog(this);
                     }

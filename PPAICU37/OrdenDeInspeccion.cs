@@ -50,7 +50,7 @@ namespace PPAICU37
 
         public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
-            EstacionSismologica.ponerSismografoFueraDeServicio(sismografos);
+            EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, motivos, estadoFueraServicio, sismografos);
         }
     }
 }

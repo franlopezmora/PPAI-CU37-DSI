@@ -29,10 +29,10 @@ namespace PPAICU37
         //      }
         //  }
 
-        public void ponerSismografoFueraDeServicio(List<Sismografo> sismografos)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
             Sismografo sismografoAsociado = buscarIdSismografo(sismografos);
-            sismografoAsociado.ponerSismografoFueraDeServicio();         
+            sismografoAsociado.ponerSismografoFueraDeServicio(fechaHora, motivos, estadoFueraServicio);         
 
         }
 

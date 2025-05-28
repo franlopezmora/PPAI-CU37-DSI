@@ -79,10 +79,15 @@ namespace PPAICU37
 
             // Estaciones y Sismógrafos
             var estacion1 = new EstacionSismologica { CodigoEstacion = "EST001", NombreEstacion = "Central Cordobesa" };
-            var sismo1 = new Sismografo { IdentificadorSismografo = "SISM001", NroSerie = "SN111", FechaAdquisicion = DateTime.Now.AddYears(-2), Estacion = estacion1, EstadoActualSismografo = estadoOperativo };
+
+        //    CambioEstado cambioEstado1 = CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo); // Estado inicial
+            var sismo1 = new Sismografo { IdentificadorSismografo = "SISM001", NroSerie = "SN111", FechaAdquisicion = DateTime.Now.AddYears(-2), Estacion = estacion1 };
+            
             sismo1.HistorialCambios.Add(CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo)); // Estado inicial
 
-            var sismo2 = new Sismografo { IdentificadorSismografo = "SISM002", NroSerie = "SN222", FechaAdquisicion = DateTime.Now.AddYears(-1), Estacion = estacion1, EstadoActualSismografo = estadoOperativo };
+
+          //  CambioEstado cambioEstado2 = CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo); // Estado inicial
+            var sismo2 = new Sismografo { IdentificadorSismografo = "SISM002", NroSerie = "SN222", FechaAdquisicion = DateTime.Now.AddYears(-1), Estacion = estacion1 };
             sismo2.HistorialCambios.Add(CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo)); // Estado inicial
 
             // estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });   ELIMINAR ESTO URGENTE
@@ -315,12 +320,12 @@ namespace PPAICU37
             if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return string.Empty;
 
             Sismografo sismografo = OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos);
-            var estadoActualSismografo = sismografo.EstadoActualSismografo;
+            var estadoActualSismografo = sismografo.CambioEstadoActualSismografo;
 
             string motivosStr = string.Join("; ", MotivosAgregados.Select(m => $"{m.Tipo.Descripcion}: {m.Comentario}"));
 
             return $"Sismógrafo: {sismografo.IdentificadorSismografo}\n" +
-                   $"Nuevo Estado: {estadoActualSismografo?.NombreEstado}\n" +
+                   $"Nuevo Estado: {estadoActualSismografo?.EstadoAsociado.NombreEstado}\n" +
                    $"Fecha y Hora: {getFechaHoraActual():g}\n" +
                    $"Motivos: {motivosStr}\n" +
                    $"Observación de Cierre Orden: {ObservacionIngresada}\n" +
@@ -334,15 +339,23 @@ namespace PPAICU37
         {
             if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return null;
 
-            var sismografo = OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos);
-            var estadoActualSismografo = sismografo.EstadoActualSismografo;
+            //var estadoActualSismografo = sismografo.CambioEstadoActualSismografo.EstadoAsociado;
+            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica == null)
+                    return null;
+
+               // Busco el Sismógrafo real desde la estación
+            var sismografo = OrdenSeleccionada
+                    .EstacionSismologica
+                    .buscarIdSismografo(_sismografos);
+            var estadoActual = sismografo?.CambioEstadoActualSismografo.EstadoAsociado;
 
             return new object[] {
-            sismografo.IdentificadorSismografo,
-            estadoActualSismografo?.NombreEstado ?? "N/A",
+            sismografo?.IdentificadorSismografo,
+            estadoActual?.NombreEstado ?? "N/A",
             getFechaHoraActual(),
             new List<MotivoFueraServicio>(MotivosAgregados), // Copia de la lista
-            ObservacionIngresada
+            ObservacionIngresada,
+            _sismografos.AsReadOnly()
         };
         }
 
