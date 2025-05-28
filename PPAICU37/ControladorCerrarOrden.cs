@@ -23,6 +23,8 @@ namespace PPAICU37
         private List<MotivoTipo> _tiposDeMotivoDisponibles;
         private List<EstacionSismologica> _estaciones; // Lista de estaciones
         private Sesion _sesionActual;
+        private EstacionSismologica _estacionSeleccionada;
+        public List<Sismografo> _sismografos; // Lista de sismógrafos
 
 
         public ControladorCerrarOrden()
@@ -37,6 +39,7 @@ namespace PPAICU37
             CargarDatosDePrueba();
             _sesionActual = null;
             ResponsableLogueado = null; // Inicialmente no hay usuario logueado
+            _estacionSeleccionada = null; // No hay estación seleccionada al inicio
 
         }
 
@@ -82,15 +85,15 @@ namespace PPAICU37
             var sismo2 = new Sismografo { IdentificadorSismografo = "SISM002", NroSerie = "SN222", FechaAdquisicion = DateTime.Now.AddYears(-1), Estacion = estacion1, EstadoActualSismografo = estadoOperativo };
             sismo2.HistorialCambios.Add(CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo)); // Estado inicial
 
-            estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });
+            // estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });   ELIMINAR ESTO URGENTE
             _estaciones.Add(estacion1);
 
             // Órdenes de Inspección de ejemplo
             var ordenesGlobales = new List<OrdenDeInspeccion>();
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 101, FechaHoraInicio = DateTime.Now.AddDays(-10), FechaHoraFinalizacion = DateTime.Now.AddDays(-8), EstadoActual = estadoRealizada, Responsable = empleado1, SismografoAfectado = sismo1 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 102, FechaHoraInicio = DateTime.Now.AddDays(-5), FechaHoraFinalizacion = DateTime.Now.AddDays(-3), EstadoActual = estadoRealizada, Responsable = empleado1, SismografoAfectado = sismo2 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, SismografoAfectado = sismo1 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2, SismografoAfectado = sismo1 });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 101, FechaHoraInicio = DateTime.Now.AddDays(-10), FechaHoraFinalizacion = DateTime.Now.AddDays(-8), EstadoActual = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo1.Estacion });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 102, FechaHoraInicio = DateTime.Now.AddDays(-5), FechaHoraFinalizacion = DateTime.Now.AddDays(-3), EstadoActual = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2 , EstacionSismologica = sismo1.Estacion});
 
             // Usuarios
             var usuarioLogueado = new Usuario
@@ -99,11 +102,16 @@ namespace PPAICU37
                 Contrasena = "123",
                 EmpleadoAsociado = empleado1
             };
+            // Sismografos
+            _sismografos = new List<Sismografo> { sismo1, sismo2 };
 
             // Asignar las órdenes a la lista que usa el controlador para las operaciones.
             // En un escenario real, estas se obtendrían de una fuente de datos.
             this.Ordenes = ordenesGlobales;
         }
+
+        public IReadOnlyList<Sismografo> Sismografos
+            => _sismografos.AsReadOnly();
 
         public bool tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
         {
@@ -271,7 +279,11 @@ namespace PPAICU37
             OrdenSeleccionada.registrarCierreOrden(fechaActual, ObservacionIngresada, estadoCerrado);
 
             // Paso 12: Actualiza al sismógrafo como fuera de servicio, asociando motivos, fecha, y responsable [cite: 2]
-            OrdenSeleccionada.ponerSismografoFueraDeServicio(fechaActual, MotivosAgregados, estadoFueraServicio);
+
+            ponerFueraServicio(); // Delegar lógica a la entidad OrdenDeInspeccion
+
+            //OrdenSeleccionada.ponerSismografoFueraDeServicio(fechaActual, MotivosAgregados, estadoFueraServicio); VIEJO CÓDIGO, NO USAR. ELIMINAR
+
             // El ResponsableLogueado es el RI que realiza el cierre.
 
             // Console.WriteLine($"DEBUG: Orden {OrdenSeleccionada.NumeroOrden} cerrada exitosamente."); // Para depuración
@@ -282,8 +294,8 @@ namespace PPAICU37
         // es invocado conceptualmente a través de OrdenDeInspeccion.ponerSismografoFueraDeServicio()
         public void ponerFueraServicio()
         {
-            // La lógica específica ya está encapsulada en las entidades.
-            // Este método en el controlador podría usarse para orquestación adicional si fuera necesario.
+            OrdenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), MotivosAgregados, buscarEstadoFueraServicio(), _sismografos);
+
             // Console.WriteLine($"DEBUG: Método ponerFueraServicio del controlador llamado (lógica delegada)."); // Para depuración
         }
 
@@ -300,9 +312,9 @@ namespace PPAICU37
         // notificarViaMail() del diagrama de clases del controlador [cite: 1]
         public string construirMensajeNotificacion()
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.SismografoAfectado == null) return string.Empty;
+            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return string.Empty;
 
-            var sismografo = OrdenSeleccionada.SismografoAfectado;
+            Sismografo sismografo = OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos);
             var estadoActualSismografo = sismografo.EstadoActualSismografo;
 
             string motivosStr = string.Join("; ", MotivosAgregados.Select(m => $"{m.Tipo.Descripcion}: {m.Comentario}"));
@@ -320,9 +332,9 @@ namespace PPAICU37
         // Para CCRS, se preparan datos específicos.
         public object[] getDatosParaPantallaCCRS() // Adaptado de actualizarPantallaCCRS
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.SismografoAfectado == null) return null;
+            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return null;
 
-            var sismografo = OrdenSeleccionada.SismografoAfectado;
+            var sismografo = OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos);
             var estadoActualSismografo = sismografo.EstadoActualSismografo;
 
             return new object[] {
