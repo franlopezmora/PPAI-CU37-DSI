@@ -21,6 +21,19 @@ namespace PPAICU37
             return NombreEstado == "Cerrada";
         }
 
+        public bool esAmbitoOrden()
+        {
+            if (Ambito == "OrdenInspeccion") 
+            { return true; }
+            else { return false; }
+        }
+        public bool esAmbitoSismografo()
+        {
+            if (Ambito == "Sismografo")
+            { return true; }
+            else { return false; }
+        }
+
         public override string ToString()
         {
             return NombreEstado;
