@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,21 +19,21 @@ namespace PPAICU37
             Motivos = new List<MotivoFueraServicio>();
         }
 
-        public static CambioEstado crear(DateTime fechaHoraInicio, List<MotivoFueraServicio> motivos, Estado estado)
+        public static CambioEstado crear(DateTime fechaHoraInicio, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estado)
         {
             var cambio = new CambioEstado
             {
                 FechaHoraInicio = fechaHoraInicio,
                 EstadoAsociado = estado
             };
-            if (motivos != null)
+            listaMotivosTipoComentario = listaMotivosTipoComentario ?? new List<Tuple<string, MotivoTipo>>();
+
+            MotivoFueraServicio motivo;
+            for (int i = 0; i < listaMotivosTipoComentario.Count; i++)
             {
-                foreach (var motivo in motivos)
-                {
-                    cambio.setMotivo(motivo);
-                }
+                motivo = new MotivoFueraServicio(listaMotivosTipoComentario[i].Item2, listaMotivosTipoComentario[i].Item1);
+                cambio.Motivos.Add(motivo);
             }
-            // Console.WriteLine($"DEBUG: CambioEstado creado para estado {estado?.NombreEstado} en {fechaHoraInicio}. Motivos: {motivos?.Count ?? 0}"); // Para depuración
             return cambio;
         }
 

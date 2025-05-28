@@ -15,5 +15,14 @@ namespace PPAICU37
         {
             return Descripcion;
         }
+        public MotivoTipo(int idTipo, string descripcion)
+        {
+            IdTipo = idTipo;
+            Descripcion = descripcion;
+        }
+        public MotivoTipo buscarMotivoTipo() 
+        { 
+            return this;
+        }
     }
 }

@@ -36,8 +36,10 @@ namespace PPAICU37
 
         public string getInfoOrdenInspeccion(List<Sismografo> sismografos)
         {
-            Sismografo sismografo = EstacionSismologica.buscarIdSismografo(sismografos);
-            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {sismografo?.IdentificadorSismografo}";
+            string nombreEstacion = EstacionSismologica.getNombre();
+            string idSismografo = EstacionSismologica.buscarIdSismografo(sismografos); // Asegura que se busque el sismógrafo asociado a la estación
+            DateTime? fechaHoraFinalizacion = this.FechaHoraFinalizacion;
+            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {idSismografo}, FechaHoraFinalizacion {fechaHoraFinalizacion}";
         }
 
         public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
@@ -48,9 +50,9 @@ namespace PPAICU37
             // Console.WriteLine($"DEBUG: Orden {NumeroOrden} registrada como cerrada."); // Para depuración
         }
 
-        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
-            EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, motivos, estadoFueraServicio, sismografos);
+            EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, sismografos);
         }
     }
 }

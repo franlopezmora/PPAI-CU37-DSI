@@ -12,7 +12,7 @@ namespace PPAICU37
         public string NroSerie { get; set; }
         public DateTime FechaAdquisicion { get; set; }
         public EstacionSismologica Estacion { get; set; }
-        public CambioEstado CambioEstadoActualSismografo { get; set; }
+    //    public CambioEstado CambioEstadoActualSismografo { get; set; }
         public List<CambioEstado> HistorialCambios { get; private set; }
 
         public Sismografo()
@@ -26,16 +26,16 @@ namespace PPAICU37
         }
 
         // Este método es invocado por OrdenDeInspeccion.ponerSismografoFueraDeServicio a través de Sismografo.cambiarEstado
-        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio)
         {
-            var cambioActualActivo = HistorialCambios.FirstOrDefault(h => h.esActual());
-            if (cambioActualActivo != null)
+            var cambioEstadoActualActivo = HistorialCambios.FirstOrDefault(h => h.esActual());
+            if (cambioEstadoActualActivo != null)
             {
-                cambioActualActivo.finalizar(fechaHora); // Finaliza el estado actual con la fecha y hora actual
+                cambioEstadoActualActivo.finalizar(fechaHora); // Finaliza el estado actual con la fecha y hora actual
             }
-            CambioEstado nuevoCambio = CambioEstado.crear(fechaHora, motivos, estadoFueraServicio); // Crea un nuevo cambio sin motivos
+            CambioEstado nuevoCambio = CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio); // Crea un nuevo cambio sin motivos
             HistorialCambios.Add(nuevoCambio); // Agrega el nuevo cambio al historial
-            this.CambioEstadoActualSismografo = nuevoCambio; // Actualiza el estado actual del sismógrafo
+        //    this.CambioEstadoActualSismografo = nuevoCambio; //MODIFICAR
 
             // Console.WriteLine($"DEBUG: Sismógrafo {IdentificadorSismografo} marcado como fuera de servicio (método interno)."); // Para depuración
         }

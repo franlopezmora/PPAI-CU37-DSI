@@ -70,7 +70,18 @@
             cmbTiposMotivo.Name = "cmbTiposMotivo";
             cmbTiposMotivo.Size = new Size(138, 28);
             cmbTiposMotivo.TabIndex = 2;
-            cmbTiposMotivo.SelectedIndexChanged += cmbTiposMotivo_SelectedIndexChanged;
+            cmbTiposMotivo.SelectedIndexChanged += seleccionarMotivo;
+            // 
+            // btnAgregarMotivo
+            // 
+            btnAgregarMotivo.Location = new Point(734, 515);
+            btnAgregarMotivo.Margin = new Padding(3, 4, 3, 4);
+            btnAgregarMotivo.Name = "btnAgregarMotivo";
+            btnAgregarMotivo.Size = new Size(86, 31);
+            btnAgregarMotivo.TabIndex = 5;
+            btnAgregarMotivo.Text = "Agregar";
+            btnAgregarMotivo.UseVisualStyleBackColor = true;
+            btnAgregarMotivo.Click += btnAgregarMotivo_Click;
             // 
             // txtComentario
             // 
@@ -89,17 +100,6 @@
             grillaMotivos.RowHeadersWidth = 51;
             grillaMotivos.Size = new Size(512, 200);
             grillaMotivos.TabIndex = 4;
-            // 
-            // btnAgregarMotivo
-            // 
-            btnAgregarMotivo.Location = new Point(734, 515);
-            btnAgregarMotivo.Margin = new Padding(3, 4, 3, 4);
-            btnAgregarMotivo.Name = "btnAgregarMotivo";
-            btnAgregarMotivo.Size = new Size(86, 31);
-            btnAgregarMotivo.TabIndex = 5;
-            btnAgregarMotivo.Text = "Agregar";
-            btnAgregarMotivo.UseVisualStyleBackColor = true;
-            btnAgregarMotivo.Click += btnAgregarMotivo_Click;
             // 
             // btnConfirmar
             // 
