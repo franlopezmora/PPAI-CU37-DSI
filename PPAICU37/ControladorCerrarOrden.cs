@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -80,7 +82,7 @@ namespace PPAICU37
             _tiposDeMotivoDisponibles.Add(new MotivoTipo (4, "Otro"));
 
             // Estaciones y Sismógrafos
-            var estacion1 = new EstacionSismologica { CodigoEstacion = "EST001", NombreEstacion = "Central Cordobesa" };
+            var estacion1 = new EstacionSismologica { CodigoEstacion = "EST001", NombreEstacion = "Central Cordoba" };
 
         //    CambioEstado cambioEstado1 = CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo); // Estado inicial
             var sismo1 = new Sismografo { IdentificadorSismografo = "SISM001", NroSerie = "SN111", FechaAdquisicion = DateTime.Now.AddYears(-2), Estacion = estacion1 };
@@ -97,10 +99,10 @@ namespace PPAICU37
 
             // Órdenes de Inspección de ejemplo
             var ordenesGlobales = new List<OrdenDeInspeccion>();
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 101, FechaHoraInicio = DateTime.Now.AddDays(-10), FechaHoraFinalizacion = DateTime.Now.AddDays(-8), EstadoActual = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo1.Estacion, ObservacionCierre = "Muy mal"});
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 102, FechaHoraInicio = DateTime.Now.AddDays(-5), FechaHoraFinalizacion = DateTime.Now.AddDays(-3), EstadoActual = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2 , EstacionSismologica = sismo1.Estacion});
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 101, FechaHoraInicio = DateTime.Now.AddDays(-10), FechaHoraFinalizacion = DateTime.Now.AddDays(-8), Estado = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo1.Estacion, ObservacionCierre = "Muy mal"});
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 102, FechaHoraInicio = DateTime.Now.AddDays(-5), FechaHoraFinalizacion = DateTime.Now.AddDays(-3), Estado = estadoRealizada, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), Estado = estadoPendiente, Responsable = empleado1, EstacionSismologica = sismo2.Estacion });
+            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), Estado = estadoRealizada, Responsable = empleado2 , EstacionSismologica = sismo1.Estacion});
 
             // Usuarios
             var usuarioLogueado = new Usuario
@@ -120,7 +122,7 @@ namespace PPAICU37
         public IReadOnlyList<Sismografo> Sismografos
             => _sismografos.AsReadOnly();
 
-        public List<OrdenDeInspeccion> tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
+        public DataTable tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
         {
             if (opcion == "CERRAR_ORDEN_INSPECCION")
             {
@@ -135,11 +137,10 @@ namespace PPAICU37
                     _sesionActual.Iniciar(usuarioLogueado);
 
                     ResponsableLogueado = buscarUsuario(_sesionActual);
-                    // Console.WriteLine($"DEBUG: Usuario {ResponsableLogueado.NombreUsuario} logueado."); // Para depuración
 
-                    List<OrdenDeInspeccion> OrdenesFiltradas = buscarOrdenInspeccion(); // Carga las órdenes elegibles
+                    DataTable tablaGenerada = buscarOrdenInspeccion(Ordenes); // Carga las órdenes elegibles
 
-                    return OrdenesFiltradas;
+                    return tablaGenerada;
                 }
                 return null;
             }
@@ -157,37 +158,98 @@ namespace PPAICU37
             Empleado empleadoBuscado = _sesionActual.getUsuario().getEmpleado();
 
             return empleadoBuscado;
-
         }
 
-        public List<OrdenDeInspeccion> buscarOrdenInspeccion() // Paso 2 CU
+        //public List<OrdenDeInspeccion> buscarOrdenInspeccion() // Paso 2 CU
+        //{
+        //    if (ResponsableLogueado == null)
+        //    {
+        //        Ordenes = new List<OrdenDeInspeccion>(); // No hay usuario, no hay órdenes
+        //        return Ordenes;
+        //    }
+
+        //    // Filtra órdenes "completamente realizadas" [cite: 2]
+        //    // El CU dice "todas las órdenes de inspección del RI que están en estado completamente realizadas" [cite: 2]
+        //    // Asumimos que el RI es el ResponsableLogueado.
+
+        //    List<OrdenDeInspeccion> OrdenesFiltradas = new List<OrdenDeInspeccion>();
+
+        //    for (int i = 0; i < Ordenes.Count; i++)
+        //    {
+        //        OrdenDeInspeccion orden = Ordenes[i]; // Obtiene la orden actual
+
+        //        if (Ordenes[i].Estado.esCompletamenteRealizada() && Ordenes[i].esDeEmpleado(ResponsableLogueado))
+        //        { OrdenesFiltradas.Add(orden); }// Verifica si la orden es del empleado logueado
+
+        //        orden.getInfoOrdenInspeccion(_sismografos);
+        //    }
+
+        //    ordenarPorFecha(OrdenesFiltradas);
+
+
+        //    return OrdenesFiltradas; // Retorna la lista filtrada
+
+        //}
+
+        public DataTable buscarOrdenInspeccion(List<OrdenDeInspeccion> OrdenesDeInspeccion)
         {
             if (ResponsableLogueado == null)
             {
-                Ordenes = new List<OrdenDeInspeccion>(); // No hay usuario, no hay órdenes
-                return Ordenes;
+                return null;
             }
 
             // Filtra órdenes "completamente realizadas" [cite: 2]
             // El CU dice "todas las órdenes de inspección del RI que están en estado completamente realizadas" [cite: 2]
             // Asumimos que el RI es el ResponsableLogueado.
 
-            List<OrdenDeInspeccion> OrdenesFiltradas = new List<OrdenDeInspeccion>();
+            string[] infoOrden = new string[3]; // Inicializa el array para evitar errores de referencia nula
+            List<string[]> listaResultado = new List<string[]>(); // Lista para almacenar los resultados
+            string[] resultado = new string[4]; // Array para almacenar los resultados de cada orden
 
-            for (int i = 0; i < Ordenes.Count; i++)
+            for (int i = 0; i < OrdenesDeInspeccion.Count; i++)
             {
                 OrdenDeInspeccion orden = Ordenes[i]; // Obtiene la orden actual
 
-                if (Ordenes[i].EstadoActual.esCompletamenteRealizada() && Ordenes[i].esDeEmpleado(ResponsableLogueado)) 
-                    {OrdenesFiltradas.Add(orden);}// Verifica si la orden es del empleado logueado
+                if (orden.Estado.esCompletamenteRealizada() && orden.esDeEmpleado(ResponsableLogueado))
+                {
+                    infoOrden = orden.getInfoOrdenInspeccion(_sismografos);
 
-                orden.getInfoOrdenInspeccion(_sismografos);
+                    int NumeroOrden;
+                    string FechaHoraFinalizacion;
+                    string EstacionSismologica;
+                    string IdSismografo; ;
+
+                    resultado = new string[] { infoOrden[0], infoOrden[3], infoOrden[1], infoOrden[2] };
+                    listaResultado.Add(resultado); // Agrega la información de la orden a la lista de resultados
+                }
             }
+            listaResultado = listaResultado.OrderBy(r => r[3]).ToList();
+            DataTable tablaGenerada = generarTablaOrdenes(listaResultado);
 
-            ordenarPorFecha(OrdenesFiltradas);
+            return tablaGenerada; // Retorna la lista filtrada
+        }
 
-            return OrdenesFiltradas; // Retorna la lista filtrada
-           
+
+        public DataTable generarTablaOrdenes(List<string[]> listaResultado)
+        {
+            // 1) Construyo un DataTable con todas las columnas que quiero ver
+            var dt = new DataTable();
+            dt.Columns.Add("Número Orden", typeof(int));
+            dt.Columns.Add("Fecha Finalización", typeof(string));
+            dt.Columns.Add("Estación Sismológica", typeof(string));
+            dt.Columns.Add("Id Sismógrafo", typeof(string));
+
+            // 2) Lleno fila a fila
+            foreach (var o in listaResultado)
+            {
+                dt.Rows.Add(
+                    o[0],
+                    o[1],
+                    o[2],
+                    o[3]
+                );
+            }
+            return dt;
         }
 
         public void ordenarPorFecha(List<OrdenDeInspeccion> OrdenesFiltradas)
@@ -397,7 +459,7 @@ namespace PPAICU37
    //         MotivosAgregados.Clear();
             listaMotivosTipoComentario.Clear();
             ComentarioMotivoIngresado = string.Empty;
-            buscarOrdenInspeccion();
+            buscarOrdenInspeccion(Ordenes);
             // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.
             // Ordenes se recargaría con buscarOrdenInspeccion() si es necesario para una nueva operación.
             // Console.WriteLine("DEBUG: Fin del Caso de Uso. Estado del controlador parcialmente reseteado."); // Para depuración

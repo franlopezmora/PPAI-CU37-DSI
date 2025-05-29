@@ -17,6 +17,7 @@ namespace PPAICU37
             InitializeComponent();
             _controlador = new ControladorCerrarOrden();
             ConfigurarEstadoInicialUI();
+            
         }
 
         private void ConfigurarEstadoInicialUI()
@@ -56,41 +57,53 @@ namespace PPAICU37
             grillaMotivos.Enabled = habilitar;
         }
 
-        private void btnIniciarSesionSimulado_Click(object sender, EventArgs e)
+        private void opcionCerrarOrden(object sender, EventArgs e)
         {
       //      MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             HabilitarSeccionSeleccionOrden(true);
-            List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION");
+            DataTable tablaFiltrada = _controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION");
             MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             btnCancelar.Enabled = true;
-            mostrarOrdenes(OrdenesFiltradas);
+            mostrarOrdenesConAsociados(tablaFiltrada);
             //     cargarTiposMotivoComboBox(); // Podemos cargarlos aquí una vez
             btnIniciarSesion.Enabled = false;
 
         }
 
-        private void mostrarOrdenes(List<OrdenDeInspeccion> OrdenesFiltradas)
+        //private void mostrarOrdenes(List<OrdenDeInspeccion> OrdenesFiltradas)
+        //{
+        //    grillaOrdenes.DataSource = null;
+        //    _ordenTemporalmenteSeleccionadaEnGrilla = null; // Resetear la selección temporal
+        //    btnSeleccionarOrden.Enabled = false; // Deshabilitar hasta nueva selección en grilla
+
+        //    if (OrdenesFiltradas != null)
+        //    {
+        //        // NUMERO ORDEN, FECHA FINALIZACION, ESTACION SISMOLOGICA, ID SISMO.
+
+        //        grillaOrdenes.DataSource = OrdenesFiltradas;
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("No hay órdenes de inspección completamente realizadas para mostrar.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //    }
+        //    // Deshabilitar las siguientes secciones hasta que se seleccione una orden explícitamente
+        //    HabilitarSeccionObservacion(false);
+        //    HabilitarSeccionMotivos(false);
+        //    btnConfirmar.Enabled = false;
+        //    btnCancelar.Enabled = true; // Habilitar el botón cancelar después del login
+        //    btnIniciarSesion.Enabled = false;
+        //}
+
+        private void mostrarOrdenesConAsociados(DataTable dt)
         {
-            grillaOrdenes.DataSource = null;
-            _ordenTemporalmenteSeleccionadaEnGrilla = null; // Resetear la selección temporal
-            btnSeleccionarOrden.Enabled = false; // Deshabilitar hasta nueva selección en grilla
+            // Asigno al DataGridView
+            grillaOrdenes.DataSource = dt;
 
-            if (OrdenesFiltradas != null)
-            {
-                grillaOrdenes.DataSource = OrdenesFiltradas;
-            }
-            else
-            {
-                MessageBox.Show("No hay órdenes de inspección completamente realizadas para mostrar.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            // Deshabilitar las siguientes secciones hasta que se seleccione una orden explícitamente
-            HabilitarSeccionObservacion(false);
-            HabilitarSeccionMotivos(false);
-            btnConfirmar.Enabled = false;
-            btnCancelar.Enabled = true; // Habilitar el botón cancelar después del login
-            btnIniciarSesion.Enabled = false;
+            // (Opcional) afinaciones de UI
+            grillaOrdenes.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+            grillaOrdenes.ReadOnly = true;
         }
-
 
         private void cargarTiposMotivoComboBox()
         {
@@ -100,29 +113,34 @@ namespace PPAICU37
         }
 
         // Evento cuando cambia la selección en la grilla de órdenes
-        private void dgvOrdenesInspeccion_SelectionChanged(object sender, EventArgs e)
+        private void grillaOrdenes_SelectionChanged(object sender, EventArgs e)
         {
-            if (grillaOrdenes.CurrentRow != null && grillaOrdenes.CurrentRow.DataBoundItem != null)
-            {
-                var selectedRowItem = grillaOrdenes.CurrentRow.DataBoundItem;
-                int numeroOrdenSeleccionada = (int)selectedRowItem.GetType().GetProperty("NumeroOrden").GetValue(selectedRowItem, null);
-                // Guardamos la orden seleccionada en la grilla temporalmente
-                _ordenTemporalmenteSeleccionadaEnGrilla = _controlador.Ordenes.FirstOrDefault(o => o.NumeroOrden == numeroOrdenSeleccionada);
-
-                if (_ordenTemporalmenteSeleccionadaEnGrilla != null)
-                {
-                    btnSeleccionarOrden.Enabled = true; // Habilitar el botón "Seleccionar Orden"
-                }
-                else
-                {
-                    btnSeleccionarOrden.Enabled = false;
-                }
-            }
-            else
+            // 1) Si no hay fila seleccionada, deshabilito y salgo
+            if (grillaOrdenes.CurrentRow == null)
             {
                 _ordenTemporalmenteSeleccionadaEnGrilla = null;
                 btnSeleccionarOrden.Enabled = false;
+                return;
             }
+
+            // 2) Casteo a DataRowView para extraer el campo "Número Orden"
+            var drv = grillaOrdenes.CurrentRow.DataBoundItem as DataRowView;
+            if (drv == null
+             || drv["Número Orden"] == DBNull.Value
+             || !int.TryParse(drv["Número Orden"].ToString(), out int nro))
+            {
+                _ordenTemporalmenteSeleccionadaEnGrilla = null;
+                btnSeleccionarOrden.Enabled = false;
+                return;
+            }
+
+            // 3) Busco la entidad completa por ese número (opcional)
+            _ordenTemporalmenteSeleccionadaEnGrilla =
+                _controlador.Ordenes
+                    .FirstOrDefault(o => o.NumeroOrden == nro);
+
+            // 4) Habilito el botón si encontré algo
+            btnSeleccionarOrden.Enabled = _ordenTemporalmenteSeleccionadaEnGrilla != null;
         }
 
         // NUEVO: Evento para el botón "Seleccionar Orden"
@@ -328,8 +346,11 @@ namespace PPAICU37
 
             _controlador.finCU();
             ConfigurarEstadoInicialUI(); // Volver al estado inicial para una nueva operación
-            List<OrdenDeInspeccion >OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
-            mostrarOrdenes(OrdenesFiltradas); // Recargar la grilla de órdenes (estará vacía o con nuevas órdenes si la lógica lo permite)
+
+            List<OrdenDeInspeccion> Ordenes = _controlador.Ordenes; // Obtener las órdenes filtradas del controlador
+            DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
+            mostrarOrdenesConAsociados(tablaFiltrada);
+
             HabilitarSeccionSeleccionOrden(true); // Permitir seleccionar otra orden
             grillaOrdenes.Enabled = true;
             txtObservacion.Clear();
@@ -360,8 +381,12 @@ namespace PPAICU37
 
             btnConfirmar.Enabled = false;
 
-            List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
-            mostrarOrdenes(OrdenesFiltradas); // Recargar las órdenes disponibles
+            //List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
+            //mostrarOrdenes(OrdenesFiltradas); // Recargar las órdenes disponibles
+
+            List<OrdenDeInspeccion> Ordenes = _controlador.Ordenes; // Obtener las órdenes filtradas del controlador
+            DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
+            mostrarOrdenesConAsociados(tablaFiltrada);
 
             MessageBox.Show("Operación cancelada. Puede seleccionar una nueva orden.", "Cancelado", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

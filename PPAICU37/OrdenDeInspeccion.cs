@@ -13,7 +13,7 @@ namespace PPAICU37
         public DateTime? FechaHoraFinalizacion { get; set; }
         public DateTime? FechaHoraCierre { get; set; }
         public string ObservacionCierre { get; set; }
-        public Estado EstadoActual { get; set; }
+        public Estado Estado { get; set; }
         public Empleado Responsable { get; set; }
          //public Sismografo SismografoAfectado { get; set; } // ELIMINAR ESTO URGENTE
         public List<CambioEstado> HistorialCambiosEstado { get; set; }
@@ -31,22 +31,29 @@ namespace PPAICU37
 
         public bool esCompletamenteRealizada()
         {
-            return EstadoActual != null && EstadoActual.esCompletamenteRealizada();
+            return Estado != null && Estado.esCompletamenteRealizada();
         }
 
-        public string getInfoOrdenInspeccion(List<Sismografo> sismografos)
+        public string[] getInfoOrdenInspeccion(List<Sismografo> sismografos)
         {
             string nombreEstacion = EstacionSismologica.getNombre();
             string idSismografo = EstacionSismologica.buscarIdSismografo(sismografos); // Asegura que se busque el sismógrafo asociado a la estación
             DateTime? fechaHoraFinalizacion = this.FechaHoraFinalizacion;
-            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {idSismografo}, FechaHoraFinalizacion {fechaHoraFinalizacion}";
+            string[] info = new string[]
+            {
+                this.NumeroOrden.ToString(),
+                nombreEstacion,
+                idSismografo,
+                fechaHoraFinalizacion.HasValue ? fechaHoraFinalizacion.Value.ToString("yyyy-MM-dd HH:mm:ss") : "No finalizada"
+            };
+            return info;
         }
 
         public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
         {
             this.FechaHoraCierre = fechaHoraCierre;
             this.ObservacionCierre = observacion;
-            this.EstadoActual = estadoCerrado;
+            this.Estado = estadoCerrado;
             // Console.WriteLine($"DEBUG: Orden {NumeroOrden} registrada como cerrada."); // Para depuración
         }
 

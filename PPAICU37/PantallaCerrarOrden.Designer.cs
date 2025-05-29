@@ -51,7 +51,7 @@
             grillaOrdenes.RowHeadersWidth = 51;
             grillaOrdenes.Size = new Size(511, 150);
             grillaOrdenes.TabIndex = 0;
-            grillaOrdenes.SelectionChanged += dgvOrdenesInspeccion_SelectionChanged;
+            grillaOrdenes.SelectionChanged += grillaOrdenes_SelectionChanged;
             // 
             // txtObservacion
             // 
@@ -124,7 +124,7 @@
             btnIniciarSesion.TabIndex = 8;
             btnIniciarSesion.Text = "Iniciar sesión";
             btnIniciarSesion.UseVisualStyleBackColor = true;
-            btnIniciarSesion.Click += btnIniciarSesionSimulado_Click;
+            btnIniciarSesion.Click += opcionCerrarOrden;
             // 
             // btnSeleccionarOrden
             // 
