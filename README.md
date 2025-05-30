@@ -1,3 +1,4 @@
+<h1 align="center">🌍 Red Sísmica – Proyecto PPAI (UTN)</h1> <p align="center"> <i>Diseño de Sistemas de Información · UTN FRC / FRVM</i><br> <b>Modelado, análisis e implementación de caso de uso real</b> </p>
 🌍 Proyecto Red Sísmica – Análisis e Implementación de Caso de Uso
 Este repositorio forma parte del Proyecto Práctico de Aplicación Integrador (PPAI) para la materia Diseño de Sistemas de Información de la UTN – Facultad Regional Córdoba y Facultad Regional Villa María.
 
