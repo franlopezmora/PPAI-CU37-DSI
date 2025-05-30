@@ -58,25 +58,29 @@
 <h2 align="center">🧩 Componentes desarrollados</h2>
 
 📦 Diagrama de clases de análisis
-📦 Diagrama de secuencia
-📦 Diagrama de componentes y despliegue
-📦 Código funcional en C# con WinForms
-📦 Patrón de diseño aplicado: [Observer, Strategy, etc.]
-📦 Interfaz gráfica y flujo completo del caso de uso
-📦 Documentación clara y comentada
 
-yaml
-Copiar
-Editar
+📦 Diagrama de secuencia
+
+📦 Diagrama de componentes y despliegue
+
+📦 Código funcional en C# con WinForms
+
+📦 Patrón de diseño aplicado: Observer, Strategy, etc.
+
+📦 Interfaz gráfica y flujo completo del caso de uso
+
+📦 Documentación clara y comentada
 
 ---
 
-<h2 align="center">🙋 Aportes personales</h2>  
+<h2 align="center">🙋 Aportes personales</h2> 
 
+- 💻  Desarrollé el código completo del caso de uso asignado
+- 🐞 Detecté y resolví bugs durante la implementación y pruebas
 - ✍️ Redacción y organización de la documentación  
 - 🧠 Clarificación de responsabilidades y relaciones en los diagramas  
 - 💬 Participación activa en defensa oral y corrección de decisiones  
-- 🗂️ Organización del repositorio con enfoque accesible  
+- 🗂️ Organización del repositorio con enfoque accesible
 
 ---
 
@@ -113,4 +117,5 @@ Ctrl + F5
 | `docs/`           | Diagramas UML, vistas arquitectónicas            |
 | `resources/`      | Imágenes u otros archivos de apoyo               |
 | `README.md`       | Este documento                                   |
+
 
