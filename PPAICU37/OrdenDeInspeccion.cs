@@ -13,10 +13,11 @@ namespace PPAICU37
         public DateTime? FechaHoraFinalizacion { get; set; }
         public DateTime? FechaHoraCierre { get; set; }
         public string ObservacionCierre { get; set; }
-        public Estado EstadoActual { get; set; }
+        public Estado Estado { get; set; }
         public Empleado Responsable { get; set; }
-        public Sismografo SismografoAfectado { get; set; }
+         //public Sismografo SismografoAfectado { get; set; } // ELIMINAR ESTO URGENTE
         public List<CambioEstado> HistorialCambiosEstado { get; set; }
+        public EstacionSismologica EstacionSismologica { get; set; } // Relación con la estación sismológica
 
         public OrdenDeInspeccion()
         {
@@ -30,33 +31,35 @@ namespace PPAICU37
 
         public bool esCompletamenteRealizada()
         {
-            return EstadoActual != null && EstadoActual.esCompletamenteRealizada();
+            return Estado != null && Estado.esCompletamenteRealizada();
         }
 
-        public string getInfoOrdenInspeccion()
+        public string[] getInfoOrdenInspeccion(List<Sismografo> sismografos)
         {
-            return $"Orden N°: {NumeroOrden}, Estado: {EstadoActual?.NombreEstado}, Sismógrafo: {SismografoAfectado?.IdentificadorSismografo}";
+            string nombreEstacion = EstacionSismologica.getNombre();
+            string idSismografo = EstacionSismologica.buscarIdSismografo(sismografos); // Asegura que se busque el sismógrafo asociado a la estación
+            DateTime? fechaHoraFinalizacion = this.FechaHoraFinalizacion;
+            string[] info = new string[]
+            {
+                this.NumeroOrden.ToString(),
+                nombreEstacion,
+                idSismografo,
+                fechaHoraFinalizacion.HasValue ? fechaHoraFinalizacion.Value.ToString("yyyy-MM-dd HH:mm:ss") : "No finalizada"
+            };
+            return info;
         }
 
         public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
         {
             this.FechaHoraCierre = fechaHoraCierre;
             this.ObservacionCierre = observacion;
-            this.EstadoActual = estadoCerrado;
+            this.Estado = estadoCerrado;
             // Console.WriteLine($"DEBUG: Orden {NumeroOrden} registrada como cerrada."); // Para depuración
         }
 
-        public CambioEstado ponerSismografoFueraDeServicio(DateTime fechaHora, List<MotivoFueraServicio> motivos, Estado estadoFueraServicio)
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
-            if (SismografoAfectado != null)
-            {
-                // Console.WriteLine($"DEBUG: Orden {NumeroOrden} - Sismógrafo {SismografoAfectado.IdentificadorSismografo} puesto fuera de servicio."); // Para depuración
-                CambioEstado nuevoCambio = CambioEstado.crear(fechaHora, motivos, estadoFueraServicio);
-                HistorialCambiosEstado.Add(nuevoCambio); // Historial en la orden
-                SismografoAfectado.cambiarEstado(nuevoCambio); // Actualizar estado y registrar cambio en el sismógrafo
-                return nuevoCambio;
-            }
-            return null;
+            EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, sismografos);
         }
     }
 }
