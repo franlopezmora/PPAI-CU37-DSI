@@ -13,14 +13,14 @@ namespace PPAICU37
     // Asume que tienes los controles: lblIdSismografoMail, lblNombreEstadoMail, 
     // lblFechaHoraActualMail, lstMotivosMail (ListBox), txtComentariosMail (TextBox o Label),
     // lblDestinatariosMail, btnOkMail.
-    public partial class PantallaMail : Form
+    public partial class InterfazMail : Form
     {
-        public PantallaMail()
+        public InterfazMail()
         {
             InitializeComponent();
         }
 
-        public void CargarDatos(string idSismografo, string nombreEstado, DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentarios, string observacionCierre, string destinatarios)
+        public void enviarMail(string idSismografo, string nombreEstado, DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentarios, string observacionCierre, string destinatarios)
         {
             // Asignar a los controles de la UI, ej:
             // identificacionSismografo (Label en diagrama) -> lblIdSismografoMail.Text = idSismografo;
@@ -48,16 +48,6 @@ namespace PPAICU37
             }
             txtComentariosMail.Text = $"Observación Cierre Orden: {observacionCierre}";
             lblDestinatariosMail.Text = $"Simulación de envío a: {destinatarios}";
-
-            enviarMail(); // Simula la acción de enviar [cite: 1]
-        }
-
-        // enviarMail() [cite: 1]
-        private void enviarMail()
-        {
-            // La "simulación" principal ya ocurrió en el controlador.
-            // Esta pantalla solo muestra la información que se "enviaría".
-            // Puedes agregar un log o confirmación visual aquí si es necesario.
             Console.WriteLine("PantallaMail: Visualizando datos para el mail simulado.");
         }
 
@@ -66,19 +56,5 @@ namespace PPAICU37
             this.Close();
         }
 
-        private void PantallaMail_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblIdSismografoMail_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void txtComentariosMail_TextChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }

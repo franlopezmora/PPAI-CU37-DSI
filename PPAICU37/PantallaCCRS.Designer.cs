@@ -43,7 +43,6 @@
             lblIdSismografo.Size = new Size(102, 20);
             lblIdSismografo.TabIndex = 0;
             lblIdSismografo.Text = "Id Sismografo";
-            lblIdSismografo.Click += lblIdSismografo_Click;
             // 
             // lblNombreEstado
             // 
@@ -71,7 +70,6 @@
             lstMotivos.Name = "lstMotivos";
             lstMotivos.Size = new Size(480, 124);
             lstMotivos.TabIndex = 3;
-            lstMotivos.SelectedIndexChanged += lstMotivos_SelectedIndexChanged;
             // 
             // lblComentarios
             // 
@@ -80,6 +78,7 @@
             lblComentarios.Name = "lblComentarios";
             lblComentarios.Size = new Size(366, 27);
             lblComentarios.TabIndex = 4;
+            lblComentarios.Enabled = false;
             // 
             // PantallaCCRS
             // 
