@@ -371,7 +371,7 @@ namespace PPAICU37
                 $"Cerrada por: {responsableLogueado?.Empleado.nombre} {responsableLogueado?.Empleado.apellido}";
 
             InterfazMail pantallaMail = new InterfazMail();
-            pantallaMail.CargarDatos(
+            pantallaMail.enviarMail(
                     (string)sismografoSeleccionado.identificadorSismografo,
                     (string)cambioEstadoActualSismografo.Estado.nombreEstado,
                     (DateTime)getFechaHoraActual(),
@@ -383,7 +383,6 @@ namespace PPAICU37
 
             MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", listadoMails)}). \n\nContenido:\n{cuerpoMail}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
 
         public void actualizarPantallaCCRS()
         {
@@ -408,7 +407,7 @@ namespace PPAICU37
             var motivosTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
 
             PantallaCCRS pantallaCCRS = new PantallaCCRS();
-            pantallaCCRS.CargarDatos(
+            pantallaCCRS.actualizarMonitor(
                 (string)IdSismografo,
                 (string)estadoActual,
                 (DateTime)getFechaHoraActual(),

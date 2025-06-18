@@ -17,9 +17,7 @@ namespace PPAICU37
         {
             InitializeComponent();
         }
-
-        // actualizarMonitor() [cite: 1] - Adaptado para cargar datos
-        public void CargarDatos(string idSismo, string estado, DateTime fecha, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, string observacion, IEnumerable<Sismografo> todosLosSismografos)
+        public void actualizarMonitor(string idSismo, string estado, DateTime fecha, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, string observacion, IEnumerable<Sismografo> todosLosSismografos)
         {
             // Asignar a los controles de la UI, ej:
             // identificacionSismografo (Label en diagrama) -> lblIdSismografo.Text = idSismografo;
@@ -55,16 +53,6 @@ namespace PPAICU37
         private void btnOkCCRS_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        private void lblIdSismografo_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lstMotivos_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }
