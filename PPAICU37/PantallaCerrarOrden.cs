@@ -69,30 +69,6 @@ namespace PPAICU37
 
         }
 
-        //private void mostrarOrdenes(List<OrdenDeInspeccion> OrdenesFiltradas)
-        //{
-        //    grillaOrdenes.DataSource = null;
-        //    _ordenTemporalmenteSeleccionadaEnGrilla = null; // Resetear la selección temporal
-        //    btnSeleccionarOrden.Enabled = false; // Deshabilitar hasta nueva selección en grilla
-
-        //    if (OrdenesFiltradas != null)
-        //    {
-        //        // NUMERO ORDEN, FECHA FINALIZACION, ESTACION SISMOLOGICA, ID SISMO.
-
-        //        grillaOrdenes.DataSource = OrdenesFiltradas;
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("No hay órdenes de inspección completamente realizadas para mostrar.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        //    }
-        //    // Deshabilitar las siguientes secciones hasta que se seleccione una orden explícitamente
-        //    HabilitarSeccionObservacion(false);
-        //    HabilitarSeccionMotivos(false);
-        //    btnConfirmar.Enabled = false;
-        //    btnCancelar.Enabled = true; // Habilitar el botón cancelar después del login
-        //    btnIniciarSesion.Enabled = false;
-        //}
-
         private void mostrarOrdenesConAsociados(DataTable dt)
         {
             // Asigno al DataGridView
