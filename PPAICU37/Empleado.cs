@@ -8,31 +8,28 @@ namespace PPAICU37
 {
     public class Empleado
     {
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
-        public string Mail { get; set; }
-        public string Telefono { get; set; }
-        public List<Rol> Roles { get; set; }
-        public string NombreUsuario { get; set; } // Para facilitar la vinculación con Usuario
+        public string nombre { get; set; }
+        public string apellido { get; set; }
+        public string mail { get; set; }
+        public string telefono { get; set; }
+        public Rol Rol { get; set; }
 
         public Empleado()
-        {
-            Roles = new List<Rol>();
-        }
+        {}
 
         public bool sosResponsableDeReparacion()
         {
-            return Roles.Any(r => r.esResponsableDeReparacion());
+            return Rol != null && Rol.esResponsableDeReparacion();
         }
 
         public string getEmail()
         {
-            return Mail;
+            return mail;
         }
 
         public override string ToString()
         {
-            return $"{Nombre} {Apellido}";
+            return $"{nombre} {apellido}";
         }
     }
 }

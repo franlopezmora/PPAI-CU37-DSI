@@ -51,7 +51,7 @@
             grillaOrdenes.RowHeadersWidth = 51;
             grillaOrdenes.Size = new Size(511, 150);
             grillaOrdenes.TabIndex = 0;
-            grillaOrdenes.SelectionChanged += grillaOrdenes_SelectionChanged;
+            grillaOrdenes.SelectionChanged += grillaOrdenesCambioSeleccion;
             // 
             // txtObservacion
             // 
@@ -67,7 +67,7 @@
             cmbTiposMotivo.Name = "cmbTiposMotivo";
             cmbTiposMotivo.Size = new Size(121, 23);
             cmbTiposMotivo.TabIndex = 2;
-            cmbTiposMotivo.SelectedIndexChanged += seleccionarMotivo;
+            cmbTiposMotivo.SelectedIndexChanged += seleccionarTipoMotivo;
             // 
             // txtComentario
             // 
@@ -93,7 +93,7 @@
             btnAgregarMotivo.TabIndex = 5;
             btnAgregarMotivo.Text = "Agregar";
             btnAgregarMotivo.UseVisualStyleBackColor = true;
-            btnAgregarMotivo.Click += btnAgregarMotivo_Click;
+            btnAgregarMotivo.Click += ingresarComentario;
             // 
             // btnConfirmar
             // 
@@ -104,7 +104,7 @@
             btnConfirmar.TabIndex = 6;
             btnConfirmar.Text = "Confirmar";
             btnConfirmar.UseVisualStyleBackColor = true;
-            btnConfirmar.Click += btnCerrarOrden_Click;
+            btnConfirmar.Click += confirmarCierre;
             // 
             // btnCancelar
             // 
@@ -114,7 +114,7 @@
             btnCancelar.TabIndex = 7;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = true;
-            btnCancelar.Click += btnCancelar_Click;
+            btnCancelar.Click += cancelarCierre;
             // 
             // btnIniciarSesion
             // 
@@ -134,7 +134,7 @@
             btnSeleccionarOrden.TabIndex = 9;
             btnSeleccionarOrden.Text = "Seleccionar orden";
             btnSeleccionarOrden.UseVisualStyleBackColor = true;
-            btnSeleccionarOrden.Click += btnSeleccionarOrden_Click;
+            btnSeleccionarOrden.Click += seleccionarOrden;
             // 
             // btnConfirmarObservacion
             // 
@@ -144,7 +144,7 @@
             btnConfirmarObservacion.TabIndex = 10;
             btnConfirmarObservacion.Text = "Registrar Observacion";
             btnConfirmarObservacion.UseVisualStyleBackColor = true;
-            btnConfirmarObservacion.Click += btnConfirmarObservacion_Click;
+            btnConfirmarObservacion.Click += ingresarObservacion;
             // 
             // PantallaCerrarOrden
             // 
