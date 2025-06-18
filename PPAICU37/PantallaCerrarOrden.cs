@@ -62,7 +62,7 @@ namespace PPAICU37
       //      MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             HabilitarSeccionSeleccionOrden(true);
             DataTable tablaFiltrada = _controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION");
-            MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Login simulado exitoso para: {_controlador.responsableLogueado.Empleado}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             btnCancelar.Enabled = true;
             mostrarOrdenesConAsociados(tablaFiltrada);
             btnIniciarSesion.Enabled = false;
@@ -135,8 +135,8 @@ namespace PPAICU37
 
             // 3) Busco la entidad completa por ese número (opcional)
             _ordenTemporalmenteSeleccionadaEnGrilla =
-                _controlador.Ordenes
-                    .FirstOrDefault(o => o.NumeroOrden == nro);
+                _controlador.ordenes
+                    .FirstOrDefault(o => o.numeroOrden == nro);
 
             // 4) Habilito el botón si encontré algo
             btnSeleccionarOrden.Enabled = _ordenTemporalmenteSeleccionadaEnGrilla != null;
@@ -223,7 +223,7 @@ namespace PPAICU37
                 txtComentario.Focus();
                 return;
             }
-            _controlador.tomarMotivoSeleccionado(motivoTipoSeleccionado);
+            _controlador.tomarTipoMotivoSeleccionado(motivoTipoSeleccionado);
             _controlador.tomarComentarioIngresado(txtComentario.Text);
             List<Tuple<string, MotivoTipo>> lista = _controlador.agregarMotivoALista();
 
@@ -259,7 +259,7 @@ namespace PPAICU37
         // Evento para el botón "Cerrar Orden"
         private void btnCerrarOrden_Click(object sender, EventArgs e)
         {
-            if (_controlador.OrdenSeleccionada == null)
+            if (_controlador.ordenSeleccionada == null)
             {
                 MessageBox.Show("Primero debe seleccionar y confirmar una orden.", "Acción requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -309,7 +309,7 @@ namespace PPAICU37
             _controlador.finCU();
             ConfigurarEstadoInicialUI(); // Volver al estado inicial para una nueva operación
 
-            List<OrdenDeInspeccion> Ordenes = _controlador.Ordenes; // Obtener las órdenes filtradas del controlador
+            List<OrdenDeInspeccion> Ordenes = _controlador.ordenes; // Obtener las órdenes filtradas del controlador
             DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
             mostrarOrdenesConAsociados(tablaFiltrada);
 
@@ -346,7 +346,7 @@ namespace PPAICU37
             //List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
             //mostrarOrdenes(OrdenesFiltradas); // Recargar las órdenes disponibles
 
-            List<OrdenDeInspeccion> Ordenes = _controlador.Ordenes; // Obtener las órdenes filtradas del controlador
+            List<OrdenDeInspeccion> Ordenes = _controlador.ordenes; // Obtener las órdenes filtradas del controlador
             DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
             mostrarOrdenesConAsociados(tablaFiltrada);
 

@@ -8,40 +8,40 @@ namespace PPAICU37
 {
     public class Estado
     {
-        public string NombreEstado { get; set; }
-        public string Ambito { get; set; } // Ej: "OrdenInspeccion", "Sismografo" [cite: 1]
+        public string nombreEstado { get; set; }
+        public string ambito { get; set; }
 
         public bool esCompletamenteRealizada()
         {
-            return NombreEstado == "Completamente Realizada";
+            return nombreEstado == "Completamente Realizada";
         }
 
         public bool esCerrado()
         {
-            return NombreEstado == "Cerrada";
+            return nombreEstado == "Cerrada";
         }
 
         public bool esFueraDeServicio()
         {
-            return NombreEstado == "Fuera de Servicio";
+            return nombreEstado == "Fuera de Servicio";
         }
 
         public bool esAmbitoOrden()
         {
-            if (Ambito == "OrdenInspeccion") 
+            if (ambito == "OrdenInspeccion") 
             { return true; }
             else { return false; }
         }
         public bool esAmbitoSismografo()
         {
-            if (Ambito == "Sismografo")
+            if (ambito == "Sismografo")
             { return true; }
             else { return false; }
         }
 
         public override string ToString()
         {
-            return NombreEstado;
+            return nombreEstado;
         }
     }
 }
