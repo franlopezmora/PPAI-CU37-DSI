@@ -16,9 +16,14 @@ namespace PPAICU37
             return NombreEstado == "Completamente Realizada";
         }
 
-        public bool esEstadoCerrado()
+        public bool esCerrado()
         {
             return NombreEstado == "Cerrada";
+        }
+
+        public bool esFueraDeServicio()
+        {
+            return NombreEstado == "Fuera de Servicio";
         }
 
         public bool esAmbitoOrden()

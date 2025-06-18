@@ -65,7 +65,6 @@ namespace PPAICU37
             MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             btnCancelar.Enabled = true;
             mostrarOrdenesConAsociados(tablaFiltrada);
-            //     cargarTiposMotivoComboBox(); // Podemos cargarlos aquí una vez
             btnIniciarSesion.Enabled = false;
 
         }
@@ -105,7 +104,7 @@ namespace PPAICU37
             grillaOrdenes.ReadOnly = true;
         }
 
-        private void cargarTiposMotivoComboBox()
+        private void cargarTiposMotivo()
         {
             cmbTiposMotivo.DataSource = null;
             cmbTiposMotivo.DataSource = _controlador.buscarTiposMotivos();
@@ -191,7 +190,7 @@ namespace PPAICU37
             txtObservacion.Enabled = false;         // Deshabilitar después de confirmar
             btnConfirmarObservacion.Enabled = false;    // Deshabilitar después de confirmar
 
-            cargarTiposMotivoComboBox();
+            cargarTiposMotivo();
 
             HabilitarSeccionMotivos(true); // Ahora habilitar la sección de motivos
                                            // btnCerrarOrden todavía no, hasta que se agreguen motivos.
@@ -306,43 +305,6 @@ namespace PPAICU37
                  MessageBoxButtons.OK,
                  MessageBoxIcon.Information
             );
-
-
-            var datosCCRS = _controlador.getDatosParaPantallaCCRS();
-            if (datosCCRS != null)
-            {
-                {
-                    PantallaCCRS pantallaCCRS = new PantallaCCRS();
-                    pantallaCCRS.CargarDatos(
-                        (string)datosCCRS[0],
-                        (string)datosCCRS[1],
-                        (DateTime)datosCCRS[2],
-                        (List<Tuple<string, MotivoTipo>>)datosCCRS[3],
-                        (string)datosCCRS[4],
-                        (IEnumerable<Sismografo>)datosCCRS[5] // Pasar la lista de sismógrafos para mostrar en CCRS si es necesario
-
-                    );
-                    pantallaCCRS.ShowDialog(this);
-                }
-            }
-            string mensajeNotificacion = _controlador.construirMensajeNotificacion();
-            List<string> emailsReparadores = _controlador.obtenerEmailsResponsablesReparacion();
-
-            PantallaMail pantallaMail = new PantallaMail();
-            if (datosCCRS != null)
-            {
-                pantallaMail.CargarDatos(
-                    (string)datosCCRS[0],
-                    (string)datosCCRS[1],
-                    (DateTime)datosCCRS[2],
-                    (List<Tuple<string, MotivoTipo>>)datosCCRS[3],
-                    (string)datosCCRS[4],
-                    string.Join(", ", emailsReparadores)
-                );
-                pantallaMail.ShowDialog(this);
-            }
-
-            MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", emailsReparadores)}). \n\nContenido:\n{mensajeNotificacion}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             _controlador.finCU();
             ConfigurarEstadoInicialUI(); // Volver al estado inicial para una nueva operación

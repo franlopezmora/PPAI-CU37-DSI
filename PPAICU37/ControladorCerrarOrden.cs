@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO.Pipes;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +18,6 @@ namespace PPAICU37
         public List<OrdenDeInspeccion> Ordenes { get; private set; }
         public MotivoTipo MotivoSeleccionado { get; private set; }
         public string ComentarioMotivoIngresado { get; private set; }
-
         public bool confirmacionRegistrada { get; private set; } // Indica si el RI ha confirmado el cierre de la orden
 
         private List<Usuario> _usuariosRegistrados;
@@ -304,15 +304,6 @@ namespace PPAICU37
         {
             listaMotivosTipoComentario.Add(new Tuple<string, MotivoTipo>(ComentarioMotivoIngresado, MotivoSeleccionado));
             return listaMotivosTipoComentario;
-
-            //if (MotivoSeleccionado != null && !string.IsNullOrWhiteSpace(ComentarioMotivoIngresado))
-            //{
-            //    var nuevoMotivo = new MotivoFueraServicio(MotivoSeleccionado, ComentarioMotivoIngresado);
-            //    MotivosAgregados.Add(nuevoMotivo);
-            //    ComentarioMotivoIngresado = string.Empty; // Limpiar para el próximo
-            //    return true;
-            //}
-            //return false;
         }
 
         public bool tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre [cite: 2]
@@ -339,11 +330,11 @@ namespace PPAICU37
 
         public Estado buscarEstadoCerrado()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Cerrada" && e.esAmbitoOrden());
+            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoOrden() && e.esCerrado());
         }
         public Estado buscarEstadoFueraServicio()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Fuera de Servicio" && e.esAmbitoSismografo());
+            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoSismografo() && e.esFueraDeServicio());
         }
 
         public DateTime getFechaHoraActual()
@@ -355,13 +346,11 @@ namespace PPAICU37
         {
             if (OrdenSeleccionada == null || !validacionObs || !validacionMotivoCom)
             {
-                // Console.WriteLine("Error: Validación fallida antes de cerrar orden."); // Para depuración
                 return false; // Validaciones fallaron
             }
 
             if (estadoCerrado == null || estadoFueraServicio == null)
             {
-                // Console.WriteLine("Error: Estados críticos no configurados (Cerrada/Fuera de Servicio)."); // Para depuración
                 return false;
             }
 
@@ -372,11 +361,6 @@ namespace PPAICU37
 
             ponerFueraServicio(estadoFueraServicio, fechaActual); // Delegar lógica a la entidad OrdenDeInspeccion
 
-            //OrdenSeleccionada.ponerSismografoFueraDeServicio(fechaActual, MotivosAgregados, estadoFueraServicio); VIEJO CÓDIGO, NO USAR. ELIMINAR
-
-            // El ResponsableLogueado es el RI que realiza el cierre.
-
-            // Console.WriteLine($"DEBUG: Orden {OrdenSeleccionada.NumeroOrden} cerrada exitosamente."); // Para depuración
             return true;
         }
 
@@ -385,9 +369,11 @@ namespace PPAICU37
         public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
         {
             OrdenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
-
-            // Console.WriteLine($"DEBUG: Método ponerFueraServicio del controlador llamado (lógica delegada)."); // Para depuración
+            notificarViaMail();
+            actualizarPantallaCCRS();
         }
+
+
 
         // Paso 13 CU: Notificaciones [cite: 2]
         public List<string> obtenerEmailsResponsablesReparacion()
@@ -400,55 +386,96 @@ namespace PPAICU37
         }
 
         // notificarViaMail() del diagrama de clases del controlador [cite: 1]
-        public string construirMensajeNotificacion()
+        public void notificarViaMail()
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return string.Empty;
+
+            List<string> EmailsResponsablesReparacion = new List<string>();
+
+            foreach (var usuario in _usuariosRegistrados)
+                {
+                 var empleado = usuario.getEmpleado();
+                 if (_sesionActual.getUsuario().getEmpleado().sosResponsableDeReparacion()) 
+                    {
+                        EmailsResponsablesReparacion.Add(empleado);
+                    }
+
+                }
+
+
+
+
+            List<string> emailsReparadores = obtenerEmailsResponsablesReparacion();
+
+            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return;
 
 
             Sismografo sismografo = OrdenSeleccionada.EstacionSismologica.buscarSismografo(_sismografos);
+
             var cambioEstadoActualSismografo = sismografo?.HistorialCambios.FirstOrDefault(h => h.esActual());
 
             var listaTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
             string motivosStr = string.Join("; ", listaTuplas.Select(t => $"{t.Item2.Descripcion}: {t.Item1}"));
 
-            return $"Sismógrafo: {sismografo.IdentificadorSismografo}\n" +
-                   $"Nuevo Estado: {cambioEstadoActualSismografo?.EstadoAsociado.NombreEstado}\n" +
-                   $"Fecha y Hora: {getFechaHoraActual():g}\n" +
-                   $"Motivos: {motivosStr}\n" +
-                   $"Observación de Cierre Orden: {ObservacionIngresada}\n" +
-                   $"Cerrada por: {ResponsableLogueado?.Nombre} {ResponsableLogueado?.Apellido}";
+            string cuerpoMail = $"Sismógrafo: {sismografo?.IdentificadorSismografo}\n" +
+                $"Nuevo Estado: {cambioEstadoActualSismografo?.EstadoAsociado.NombreEstado}\n" +
+                $"Fecha y Hora: {getFechaHoraActual():g}\n" +
+                $"Motivos: {motivosStr}\n" +
+                $"Observación de Cierre Orden: {ObservacionIngresada}\n" +
+                $"Cerrada por: {ResponsableLogueado?.Nombre} {ResponsableLogueado?.Apellido}";
+
+
+            InterfazMail pantallaMail = new InterfazMail();
+            pantallaMail.CargarDatos(
+                    (string)sismografo.IdentificadorSismografo,
+                    (string)cambioEstadoActualSismografo.EstadoAsociado.NombreEstado,
+                    (DateTime)getFechaHoraActual(),
+                    (List<Tuple<string, MotivoTipo>>)listaTuplas,
+                    (string)ObservacionIngresada,
+                    string.Join(", ", emailsReparadores)
+                );
+            pantallaMail.ShowDialog();
+
+
+            MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", emailsReparadores)}). \n\nContenido:\n{cuerpoMail}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
         }
 
         // actualizarPantalla() del diagrama de clases del controlador [cite: 1]
         // Este es un concepto, la actualización real la hacen las pantallas al pedir datos.
         // Para CCRS, se preparan datos específicos.
-        public object[] getDatosParaPantallaCCRS() // Adaptado de actualizarPantallaCCRS
+        public void actualizarPantallaCCRS() // Adaptado de actualizarPantallaCCRS
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) return null;
+            if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica.buscarIdSismografo(_sismografos) == null) 
+                    return;
 
             //var estadoActualSismografo = sismografo.CambioEstadoActualSismografo.EstadoAsociado;
             if (OrdenSeleccionada == null || OrdenSeleccionada.EstacionSismologica == null)
-                    return null;
+                    return;
 
                // Busco el Sismógrafo real desde la estación
-            var sismografo = OrdenSeleccionada
+            var IdSismografo = OrdenSeleccionada
                     .EstacionSismologica
-                    .buscarSismografo(_sismografos);
+                    .buscarIdSismografo(_sismografos);
+
+            Sismografo sismografo = _sismografos.FirstOrDefault(s => s.getidSismografo() == IdSismografo);
 
             CambioEstado cambioEstadoActualSismografo = sismografo.HistorialCambios.FirstOrDefault(h => h.esActual());
-            var estadoActual = cambioEstadoActualSismografo.EstadoAsociado;
+            var estadoActual = cambioEstadoActualSismografo.EstadoAsociado.NombreEstado ?? "N/A";
 
 
             var motivosTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
 
-            return new object[] {
-            sismografo?.IdentificadorSismografo,
-            estadoActual?.NombreEstado ?? "N/A",
-            getFechaHoraActual(),
-            motivosTuplas, // Copia de la lista
-            ObservacionIngresada,
-            _sismografos.AsReadOnly()
-        };
+            PantallaCCRS pantallaCCRS = new PantallaCCRS();
+            pantallaCCRS.CargarDatos(
+                (string)IdSismografo,
+                (string)estadoActual,
+                (DateTime)getFechaHoraActual(),
+                (List<Tuple<string, MotivoTipo>>)motivosTuplas,
+                (string)ObservacionIngresada,
+                (IEnumerable<Sismografo>)_sismografos.AsReadOnly() // Pasar la lista de sismógrafos para mostrar en CCRS si es necesario
+
+            );
+            pantallaCCRS.ShowDialog();
         }
 
         public void finCU() // fin C.U. del diagrama [cite: 1]

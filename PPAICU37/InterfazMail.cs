@@ -13,9 +13,9 @@ namespace PPAICU37
     // Asume que tienes los controles: lblIdSismografoMail, lblNombreEstadoMail, 
     // lblFechaHoraActualMail, lstMotivosMail (ListBox), txtComentariosMail (TextBox o Label),
     // lblDestinatariosMail, btnOkMail.
-    public partial class PantallaMail : Form
+    public partial class InterfazMail : Form
     {
-        public PantallaMail()
+        public InterfazMail()
         {
             InitializeComponent();
         }

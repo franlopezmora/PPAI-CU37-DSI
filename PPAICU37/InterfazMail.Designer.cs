@@ -1,6 +1,6 @@
 ﻿namespace PPAICU37
 {
-    partial class PantallaMail
+    partial class InterfazMail
     {
         /// <summary>
         /// Required designer variable.

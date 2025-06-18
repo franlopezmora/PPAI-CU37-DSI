@@ -46,7 +46,6 @@ namespace PPAICU37
         {
             Sismografo sismografo = sismografos.FirstOrDefault(s => s.Estacion == this);
             string idSismografo = sismografo.getidSismografo(); // Asegura que se obtenga el ID del sismógrafo asociado a la estación
-            //    return sismografo.getidSismografo();
             return idSismografo;
         }
         public Sismografo buscarSismografo(IEnumerable<Sismografo> sismografos)
