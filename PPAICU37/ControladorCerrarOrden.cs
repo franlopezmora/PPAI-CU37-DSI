@@ -30,7 +30,15 @@ namespace PPAICU37
         private EstacionSismologica _estacionSeleccionada;
         public List<Sismografo> _sismografos; // Lista de sismógrafos
         public List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario;
+        private DestinoNotificacion destinoNotificacion = DestinoNotificacion.Ambas;
 
+
+        public enum DestinoNotificacion
+        {
+            Ambas,
+            SoloMail,
+            SoloPantalla
+        }
 
         public ControladorCerrarOrden()
         {
@@ -271,17 +279,31 @@ namespace PPAICU37
             return listaMotivosTipoComentario;
         }
 
-        public bool tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre
+        public bool tomarConfirmacionRegistrada(DestinoNotificacion destino)
         {
-            confirmacionRegistrada = true; // Marca que el RI ha confirmado el cierre de la orden
+            confirmacionRegistrada = true;
+
             bool validacionObs = validarObservacion();
             bool validacionMotivoCom = validarMotivoSeleccionado();
             Estado estadoCerrado = buscarEstadoCerrado();
             Estado estadoFueraServicio = buscarEstadoFueraServicio();
             DateTime fechaActual = getFechaHoraActual();
+
             bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, estadoFueraServicio, fechaActual);
+
+            if (exitoCerrar)
+            {
+                if (destino == DestinoNotificacion.Ambas || destino == DestinoNotificacion.SoloMail)
+                    notificarViaMail();
+
+                if (destino == DestinoNotificacion.Ambas || destino == DestinoNotificacion.SoloPantalla)
+                    actualizarPantallaCCRS();
+            }
+
             return exitoCerrar;
         }
+
+
 
         public bool validarObservacion() // Paso 10 CU (parte 1)
         {
@@ -333,8 +355,6 @@ namespace PPAICU37
         public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
         {
             ordenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
-            notificarViaMail();
-            actualizarPantallaCCRS();
         }
 
         // Paso 13 CU: Notificaciones
@@ -430,9 +450,12 @@ namespace PPAICU37
             listaMotivosTipoComentario.Clear();
             comentarioMotivoIngresado = string.Empty;
             buscarOrdenInspeccion(ordenes);
-            // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.
-            // Ordenes se recargaría con buscarOrdenInspeccion() si es necesario para una nueva operación.
-            // Console.WriteLine("DEBUG: Fin del Caso de Uso. Estado del controlador parcialmente reseteado."); // Para depuración
         }
+
+        public void setearDestinoNotificacion(DestinoNotificacion destino)
+        {
+            destinoNotificacion = destino;
+        }
+
     }
 }

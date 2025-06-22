@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using static PPAICU37.ControladorCerrarOrden;
 
 namespace PPAICU37
+
 {
+
     public partial class PantallaCerrarOrden : Form
     {
         private ControladorCerrarOrden _controlador;
@@ -36,8 +39,6 @@ namespace PPAICU37
             solicitarComentario(false);
 
             solicitarConfirmacion(false);
-            btnCancelar.Enabled = false; // Se habilita después del login
-            btnIniciarSesion.Enabled = true;
         }
 
         private void mostrarOrdenesConAsociados(DataTable dt)
@@ -95,7 +96,7 @@ namespace PPAICU37
             {
                 MessageBox.Show("La observación de cierre no puede estar vacía.", "Dato Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 // `solicitarIngresoObservacion()` - Mantener foco
-                txtObservacionCierre.Focus();
+                txtObservacion.Focus();
                 return;
             }
 
@@ -173,6 +174,10 @@ namespace PPAICU37
             {
                 solicitarConfirmacion(true);
             }
+            if (_controlador.listaMotivosTipoComentario.Count > 0)
+            {
+                cmbDestinoNotificacion.Enabled = true;
+            }
         }
 
         private void solicitarConfirmacion(bool habilitar)
@@ -212,7 +217,17 @@ namespace PPAICU37
 
             if (confirmResult != DialogResult.Yes) return;
 
-            bool exito = _controlador.tomarConfirmacionRegistrada();
+            DestinoNotificacion destino = DestinoNotificacion.Ambas;
+
+            switch (cmbDestinoNotificacion.SelectedIndex)
+            {
+                case 0: destino = DestinoNotificacion.Ambas; break;
+                case 1: destino = DestinoNotificacion.SoloMail; break;
+                case 2: destino = DestinoNotificacion.SoloPantalla; break;
+            }
+
+            bool exito = _controlador.tomarConfirmacionRegistrada(destino);
+
             if (!exito)
             {
                 MessageBox.Show(
@@ -241,6 +256,8 @@ namespace PPAICU37
             grillaOrdenes.Enabled = true;
             txtObservacion.Clear();
             mostrarMotivosAgregados(_controlador.listaMotivosTipoComentario); // Limpiar la grilla de motivos
+            cmbDestinoNotificacion.Enabled = false;
+            cmbDestinoNotificacion.SelectedIndex = 0;
 
         }
 
@@ -325,6 +342,26 @@ namespace PPAICU37
             mostrarOrdenesConAsociados(tablaFiltrada);
 
             MessageBox.Show("Operación cancelada. Puede seleccionar una nueva orden.", "Cancelado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            cmbDestinoNotificacion.Enabled = false;
+            cmbDestinoNotificacion.SelectedIndex = 0;
         }
+
+        private void cmbDestinoNotificacion_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (cmbDestinoNotificacion.SelectedIndex)
+            {
+                case 0:
+                    _controlador.setearDestinoNotificacion(DestinoNotificacion.Ambas);
+                    break;
+                case 1:
+                    _controlador.setearDestinoNotificacion(DestinoNotificacion.SoloMail);
+                    break;
+                case 2:
+                    _controlador.setearDestinoNotificacion(DestinoNotificacion.SoloPantalla);
+                    break;
+            }
+        }
+
+
     }
 }
