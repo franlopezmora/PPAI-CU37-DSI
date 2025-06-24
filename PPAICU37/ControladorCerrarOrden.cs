@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO.Pipes;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,14 +11,15 @@ namespace PPAICU37
 {
     public class ControladorCerrarOrden
     {
-        //private OrdenDeInspeccion _ordenTemporalmenteSeleccionadaEnGrilla;
-        public OrdenDeInspeccion OrdenSeleccionada { get; private set; }
-        public string ObservacionIngresada { get; private set; }
-        public Empleado ResponsableLogueado { get; private set; }
-        public List<OrdenDeInspeccion> Ordenes { get; private set; }
-        public MotivoTipo MotivoSeleccionado { get; private set; }
-        public List<MotivoFueraServicio> MotivosAgregados { get; private set; }
-        public string ComentarioMotivoIngresado { get; private set; }
+        public OrdenDeInspeccion ordenSeleccionada { get; private set; }
+        public Sismografo sismografoSeleccionado { get; private set; }
+        public EstacionSismologica estacionSeleccionada { get; private set; }
+        public string observacionIngresada { get; private set; }
+        public Usuario responsableLogueado { get; private set; }
+        public List<OrdenDeInspeccion> ordenes { get; private set; }
+        public MotivoTipo motivoSeleccionado { get; private set; }
+        public string comentarioMotivoIngresado { get; private set; }
+        public bool confirmacionRegistrada { get; private set; } // Indica si el RI ha confirmado el cierre de la orden
 
         private List<Usuario> _usuariosRegistrados;
         private List<Empleado> _empleadosRegistrados;
@@ -23,31 +27,35 @@ namespace PPAICU37
         private List<MotivoTipo> _tiposDeMotivoDisponibles;
         private List<EstacionSismologica> _estaciones; // Lista de estaciones
         private Sesion _sesionActual;
+        private EstacionSismologica _estacionSeleccionada;
+        public List<Sismografo> _sismografos; // Lista de sismógrafos
+        public List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario;
 
 
         public ControladorCerrarOrden()
         {
-            MotivosAgregados = new List<MotivoFueraServicio>();
+            listaMotivosTipoComentario = new List<Tuple<string, MotivoTipo>>(); // Inicializa la lista de motivos y comentarios
             _usuariosRegistrados = new List<Usuario>();
             _empleadosRegistrados = new List<Empleado>();
             _estadosPosibles = new List<Estado>();
             _tiposDeMotivoDisponibles = new List<MotivoTipo>();
-            Ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
+            ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
             _estaciones = new List<EstacionSismologica>();
-            CargarDatosDePrueba();
+            cargarDatosDePrueba();
             _sesionActual = null;
-            ResponsableLogueado = null; // Inicialmente no hay usuario logueado
+            responsableLogueado = null; // Inicialmente no hay usuario logueado
+            _estacionSeleccionada = null; // No hay estación seleccionada al inicio
 
         }
 
-        private void CargarDatosDePrueba()
+        private void cargarDatosDePrueba()
         {
             // Estados
-            var estadoPendiente = new Estado { NombreEstado = "Pendiente de Inspección", Ambito = "OrdenInspeccion" };
-            var estadoRealizada = new Estado { NombreEstado = "Completamente Realizada", Ambito = "OrdenInspeccion" };
-            var estadoCerrada = new Estado { NombreEstado = "Cerrada", Ambito = "OrdenInspeccion" };
-            var estadoFueraServicio = new Estado { NombreEstado = "Fuera de Servicio", Ambito = "Sismografo" };
-            var estadoOperativo = new Estado { NombreEstado = "Operativo", Ambito = "Sismografo" };
+            var estadoPendiente = new Estado { nombreEstado = "Pendiente de Inspección", ambito = "OrdenInspeccion" };
+            var estadoRealizada = new Estado { nombreEstado = "Completamente Realizada", ambito = "OrdenInspeccion" };
+            var estadoCerrada = new Estado { nombreEstado = "Cerrada", ambito = "OrdenInspeccion" };
+            var estadoFueraServicio = new Estado { nombreEstado = "Fuera de Servicio", ambito = "Sismografo" };
+            var estadoOperativo = new Estado { nombreEstado = "Operativo", ambito = "Sismografo" };
             _estadosPosibles.AddRange(new[] { estadoPendiente, estadoRealizada, estadoCerrada, estadoFueraServicio, estadoOperativo });
 
             // Roles
@@ -55,57 +63,67 @@ namespace PPAICU37
             var rolReparador = new Rol { NombreRol = "Responsable de Reparaciones", DescripcionRol = "Repara sismógrafos" };
 
             // Empleados y Usuarios
-            var empleado1 = new Empleado { Nombre = "Juan", Apellido = "Perez", Mail = "juan.perez@example.com", Telefono = "123456", NombreUsuario = "jperez" };
-            empleado1.Roles.Add(rolInspector);
-            empleado1.Roles.Add(rolReparador); // Juan también puede ser reparador para simplificar
-            var usuario1 = new Usuario { NombreUsuario = "jperez", Contrasena = "123", EmpleadoAsociado = empleado1 };
+            var empleado1 = new Empleado { nombre = "Juan", apellido = "Perez", mail = "juan.perez@example.com", telefono = "123456" };
+        
+            empleado1.Rol = rolReparador;
+            var usuario1 = new Usuario { nombreUsuario = "jperez", contrasena = "123", Empleado = empleado1 };
             _empleadosRegistrados.Add(empleado1);
             _usuariosRegistrados.Add(usuario1);
 
-            var empleado2 = new Empleado { Nombre = "Ana", Apellido = "Lopez", Mail = "ana.lopez@example.com", Telefono = "789012", NombreUsuario = "alopez" };
-            empleado2.Roles.Add(rolReparador);
-            var usuario2 = new Usuario { NombreUsuario = "alopez", Contrasena = "456", EmpleadoAsociado = empleado2 };
+            var empleado2 = new Empleado { nombre = "Ana", apellido = "Lopez", mail = "ana.lopez@example.com", telefono = "789012" };
+            empleado2.Rol = rolReparador;
+            var usuario2 = new Usuario { nombreUsuario = "alopez", contrasena = "456", Empleado = empleado2 };
             _empleadosRegistrados.Add(empleado2);
             _usuariosRegistrados.Add(usuario2);
 
             // MotivoTipos
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 1, Descripcion = "Falla de sensor" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 2, Descripcion = "Problema de alimentación" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 3, Descripcion = "Mantenimiento programado" });
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo { IdTipo = 4, Descripcion = "Otro" });
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (1, "Falla de sensor" ));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (2, "Problema de alimentación" ));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (3, "Mantenimiento programado"));
+            _tiposDeMotivoDisponibles.Add(new MotivoTipo (4, "Otro"));
 
             // Estaciones y Sismógrafos
-            var estacion1 = new EstacionSismologica { CodigoEstacion = "EST001", NombreEstacion = "Central Cordobesa" };
-            var sismo1 = new Sismografo { IdentificadorSismografo = "SISM001", NroSerie = "SN111", FechaAdquisicion = DateTime.Now.AddYears(-2), Estacion = estacion1, EstadoActualSismografo = estadoOperativo };
-            sismo1.HistorialCambios.Add(CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo)); // Estado inicial
+            var estacion1 = new EstacionSismologica { codigoEstacion = "EST001", nombreEstacion = "Central Cordoba" };
 
-            var sismo2 = new Sismografo { IdentificadorSismografo = "SISM002", NroSerie = "SN222", FechaAdquisicion = DateTime.Now.AddYears(-1), Estacion = estacion1, EstadoActualSismografo = estadoOperativo };
-            sismo2.HistorialCambios.Add(CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo)); // Estado inicial
+        //    CambioEstado cambioEstado1 = CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo); // Estado inicial
+            var sismo1 = new Sismografo { identificadorSismografo = "SISM001", nroSerie = "SN111", fechaAdquisicion = DateTime.Now.AddYears(-2), EstacionSismologica = estacion1 };
+            
+            sismo1.CambioEstado.Add(CambioEstado.crear(sismo1.fechaAdquisicion, null, estadoOperativo)); // Estado inicial
 
-            estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });
+
+          //  CambioEstado cambioEstado2 = CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo); // Estado inicial
+            var sismo2 = new Sismografo { identificadorSismografo = "SISM002", nroSerie = "SN222", fechaAdquisicion = DateTime.Now.AddYears(-1), EstacionSismologica = estacion1 };
+            sismo2.CambioEstado.Add(CambioEstado.crear(sismo2.fechaAdquisicion, null, estadoOperativo)); // Estado inicial
+
+            // estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });   ELIMINAR ESTO URGENTE
             _estaciones.Add(estacion1);
 
             // Órdenes de Inspección de ejemplo
             var ordenesGlobales = new List<OrdenDeInspeccion>();
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 101, FechaHoraInicio = DateTime.Now.AddDays(-10), FechaHoraFinalizacion = DateTime.Now.AddDays(-8), EstadoActual = estadoRealizada, Responsable = empleado1, SismografoAfectado = sismo1 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 102, FechaHoraInicio = DateTime.Now.AddDays(-5), FechaHoraFinalizacion = DateTime.Now.AddDays(-3), EstadoActual = estadoRealizada, Responsable = empleado1, SismografoAfectado = sismo2 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 103, FechaHoraInicio = DateTime.Now.AddDays(-2), EstadoActual = estadoPendiente, Responsable = empleado1, SismografoAfectado = sismo1 });
-            ordenesGlobales.Add(new OrdenDeInspeccion { NumeroOrden = 104, FechaHoraInicio = DateTime.Now.AddDays(-15), FechaHoraFinalizacion = DateTime.Now.AddDays(-12), EstadoActual = estadoRealizada, Responsable = empleado2, SismografoAfectado = sismo1 });
+            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 101, fechaHoraInicio = DateTime.Now.AddDays(-10), fechaHoraFinalizacion = DateTime.Now.AddDays(-8), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo1.EstacionSismologica, observacionCierre = "Muy mal"});
+            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 102, fechaHoraInicio = DateTime.Now.AddDays(-5), fechaHoraFinalizacion = DateTime.Now.AddDays(-3), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
+            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 103, fechaHoraInicio = DateTime.Now.AddDays(-2), Estado = estadoPendiente, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
+            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 104, fechaHoraInicio = DateTime.Now.AddDays(-15), fechaHoraFinalizacion = DateTime.Now.AddDays(-12), Estado = estadoRealizada, Empleado = empleado2 , EstacionSismologica = sismo1.EstacionSismologica});
 
             // Usuarios
             var usuarioLogueado = new Usuario
             {
-                NombreUsuario = "jperez",
-                Contrasena = "123",
-                EmpleadoAsociado = empleado1
+                nombreUsuario = "jperez",
+                contrasena = "123",
+                Empleado = empleado1
             };
+            // Sismografos
+            _sismografos = new List<Sismografo> { sismo1, sismo2 };
 
             // Asignar las órdenes a la lista que usa el controlador para las operaciones.
             // En un escenario real, estas se obtendrían de una fuente de datos.
-            this.Ordenes = ordenesGlobales;
+            this.ordenes = ordenesGlobales;
         }
 
-        public bool tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
+        public IReadOnlyList<Sismografo> Sismografos
+            => _sismografos.AsReadOnly();
+
+        public DataTable tomarOpcionSeleccionada(string opcion) // Invocado al inicio del CU
         {
             if (opcion == "CERRAR_ORDEN_INSPECCION")
             {
@@ -119,129 +137,170 @@ namespace PPAICU37
                     _sesionActual = new Sesion();
                     _sesionActual.Iniciar(usuarioLogueado);
 
-                    ResponsableLogueado = buscarUsuario(_sesionActual);
-                    // Console.WriteLine($"DEBUG: Usuario {ResponsableLogueado.NombreUsuario} logueado."); // Para depuración
+                    responsableLogueado = buscarUsuario(_sesionActual);
 
-                    buscarOrdenInspeccion(); // Carga las órdenes elegibles
+                    DataTable tablaGenerada = buscarOrdenInspeccion(ordenes); // Carga las órdenes elegibles
 
-                    return true;
+                    return tablaGenerada;
                 }
-                // Console.WriteLine($"DEBUG: Falla de login simulado."); // Para depuración
-                return false;
+                return null;
             }
-            return false;
+            return null;
         }
-
 
         public Usuario login(string nombreUsuario, string contrasena)
         {
-            return _usuariosRegistrados.FirstOrDefault(u => u.NombreUsuario == nombreUsuario && u.Contrasena == contrasena);
+            return _usuariosRegistrados.FirstOrDefault(u => u.nombreUsuario == nombreUsuario && u.contrasena == contrasena);
         }
 
-        public Empleado buscarUsuario(Sesion _sesionActual)
+        public Usuario buscarUsuario(Sesion _sesionActual)
         {
-            Empleado empleadoBuscado = _sesionActual.getUsuario().getEmpleado();
+            Usuario empleadoBuscado = _sesionActual.getUsuario();
 
             return empleadoBuscado;
-
         }
 
-        public void buscarOrdenInspeccion() // Paso 2 CU
+        public DataTable buscarOrdenInspeccion(List<OrdenDeInspeccion> OrdenesDeInspeccion)
         {
-            if (ResponsableLogueado == null)
+            if (responsableLogueado == null)
             {
-                Ordenes = new List<OrdenDeInspeccion>(); // No hay usuario, no hay órdenes
-                return;
+                return null;
             }
-            // Filtra órdenes "completamente realizadas" [cite: 2]
-            // El CU dice "todas las órdenes de inspección del RI que están en estado completamente realizadas" [cite: 2]
-            // Asumimos que el RI es el ResponsableLogueado.
-            Ordenes = Ordenes
-                .Where(o => o.EstadoActual.esCompletamenteRealizada() && o.esDeEmpleado(ResponsableLogueado)) // El filtro por empleado es opcional según interpretación del CU.
-                .ToList();
-            ordenarPorFecha(); // CU: "ordenadas por fecha de finalización" [cite: 2]
-                               // Console.WriteLine($"DEBUG: Encontradas {Ordenes.Count} órdenes completamente realizadas para {ResponsableLogueado.NombreUsuario}."); // Para depuración
-        }
 
-        public void ordenarPorFecha()
-        {
-            Ordenes = Ordenes.OrderByDescending(o => o.FechaHoraFinalizacion ?? DateTime.MinValue).ToList();
-        }
+            string[] infoOrden = new string[3]; // Inicializa el array para evitar errores de referencia nula
+            List<string[]> listaResultado = new List<string[]>(); // Lista para almacenar los resultados
+            string[] resultado = new string[4]; // Array para almacenar los resultados de cada orden
 
-        public void tomarOrdenSeleccionada(OrdenDeInspeccion orden) // Paso 3 CU [cite: 2]
-        {
-            OrdenSeleccionada = orden;
-            MotivosAgregados.Clear();
-            ObservacionIngresada = string.Empty;
-            ComentarioMotivoIngresado = string.Empty;
-            MotivoSeleccionado = null;
-            // Console.WriteLine($"DEBUG: Orden {orden?.NumeroOrden} seleccionada."); // Para depuración
-        }
-
-        public void tomarObservacionIngresada(string observacion) // Paso 5 CU [cite: 2]
-        {
-            ObservacionIngresada = observacion;
-            // Console.WriteLine($"DEBUG: Observación ingresada: {observacion}"); // Para depuración
-        }
-
-        public List<MotivoTipo> buscarMotivos() // Paso 6 CU (cargar tipos para UI) [cite: 2]
-        {
-            return cargarTiposMotivos();
-        }
-        public List<MotivoTipo> cargarTiposMotivos()
-        {
-            return _tiposDeMotivoDisponibles;
-        }
-
-
-        public void tomarMotivoSeleccionado(MotivoTipo motivoTipo) // Paso 7 CU (selección de tipo) [cite: 2]
-        {
-            MotivoSeleccionado = motivoTipo;
-            // Console.WriteLine($"DEBUG: MotivoTipo seleccionado: {motivoTipo?.Descripcion}"); // Para depuración
-        }
-
-        public void tomarComentarioIngresado(string comentario) // Paso 7 CU (ingreso de comentario para motivo) [cite: 2]
-        {
-            ComentarioMotivoIngresado = comentario;
-            // Console.WriteLine($"DEBUG: Comentario para motivo ingresado: {comentario}"); // Para depuración
-        }
-
-        public bool agregarMotivoALista() // Acción de UI para agregar un motivo a la lista temporal
-        {
-            if (MotivoSeleccionado != null && !string.IsNullOrWhiteSpace(ComentarioMotivoIngresado))
+            for (int i = 0; i < OrdenesDeInspeccion.Count; i++)
             {
-                var nuevoMotivo = new MotivoFueraServicio(MotivoSeleccionado, ComentarioMotivoIngresado);
-                MotivosAgregados.Add(nuevoMotivo);
-                // Console.WriteLine($"DEBUG: Motivo '{MotivoSeleccionado.Descripcion}' con comentario '{ComentarioMotivoIngresado}' agregado."); // Para depuración
-                ComentarioMotivoIngresado = string.Empty; // Limpiar para el próximo
-                return true;
+                OrdenDeInspeccion orden = ordenes[i]; // Obtiene la orden actual
+
+                if (orden.Estado.esCompletamenteRealizada() && orden.esDeEmpleado(responsableLogueado))
+                {
+                    infoOrden = orden.getInfoOrdenInspeccion(_sismografos);
+
+                    int NumeroOrden;
+                    string FechaHoraFinalizacion;
+                    string EstacionSismologica;
+                    string IdSismografo; ;
+
+                    resultado = new string[] { infoOrden[0], infoOrden[3], infoOrden[1], infoOrden[2] };
+                    listaResultado.Add(resultado); // Agrega la información de la orden a la lista de resultados
+                }
             }
-            // Console.WriteLine($"DEBUG: Falla al agregar motivo. Motivo: {MotivoSeleccionado != null}, Comentario: {!string.IsNullOrWhiteSpace(ComentarioMotivoIngresado)}"); // Para depuración
-            return false;
+            listaResultado = listaResultado.OrderBy(r => r[3]).ToList();
+            DataTable tablaGenerada = generarTablaOrdenes(listaResultado);
+
+            return tablaGenerada; // Retorna la lista filtrada
         }
 
-        public void tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre [cite: 2]
+        public DataTable generarTablaOrdenes(List<string[]> listaResultado)
         {
-            // Console.WriteLine($"DEBUG: Confirmación de cierre registrada por el usuario."); // Para depuración
+            // 1) Construyo un DataTable con todas las columnas que quiero ver
+            var dt = new DataTable();
+            dt.Columns.Add("Número Orden", typeof(int));
+            dt.Columns.Add("Fecha Finalización", typeof(string));
+            dt.Columns.Add("Estación Sismológica", typeof(string));
+            dt.Columns.Add("Id Sismógrafo", typeof(string));
+
+            // 2) Lleno fila a fila
+            foreach (var o in listaResultado)
+            {
+                dt.Rows.Add(
+                    o[0],
+                    o[1],
+                    o[2],
+                    o[3]
+                );
+            }
+            return dt;
         }
 
-        public bool validarObservacion() // Paso 10 CU (parte 1) [cite: 2]
+        public void ordenarPorFecha(List<OrdenDeInspeccion> OrdenesFiltradas)
         {
-            return !string.IsNullOrWhiteSpace(ObservacionIngresada);
+            OrdenesFiltradas = OrdenesFiltradas.OrderByDescending(o => o.fechaHoraFinalizacion ?? DateTime.MinValue).ToList();
         }
 
-        public bool validarMotivoSeleccionado() // Paso 10 CU (parte 2) [cite: 2]
+        public void tomarOrdenSeleccionada(OrdenDeInspeccion orden) // Paso 3 CU
         {
-            return MotivosAgregados.Any();
+            ordenSeleccionada = orden;
+
+            estacionSeleccionada = orden?.EstacionSismologica;
+            sismografoSeleccionado = estacionSeleccionada?.buscarSismografo(_sismografos);
+
+            listaMotivosTipoComentario.Clear();
+            observacionIngresada = string.Empty;
+            comentarioMotivoIngresado = string.Empty;
+            motivoSeleccionado = null;
+        }
+
+        public void tomarObservacionIngresada(string observacion) // Paso 5 CU
+        {
+            observacionIngresada = observacion;
+        }
+
+        public List<MotivoTipo> buscarTiposMotivos() // Paso 6 CU (cargar tipos para UI)
+        {
+
+            List<MotivoTipo> listaMotivosEncontrados = new List<MotivoTipo>();
+            List<MotivoTipo> motivos = _tiposDeMotivoDisponibles;
+
+            for (int i = 0; i < motivos.Count; i++)
+            {
+                MotivoTipo motivo = motivos[i];
+                MotivoTipo motivoEncontrado = motivo.buscarMotivoTipo();
+                listaMotivosEncontrados.Add(motivoEncontrado);
+            }
+           
+            return listaMotivosEncontrados;
+        }
+
+        public void tomarTipoMotivoSeleccionado(MotivoTipo motivoTipo) // Paso 7 CU (selección de tipo)
+        {
+            motivoSeleccionado = motivoTipo;
+        }
+
+        public void tomarComentarioIngresado(string comentario) // Paso 7 CU (ingreso de comentario para motivo)
+        {
+            comentarioMotivoIngresado = comentario;
+        }
+
+        public List<Tuple<string, MotivoTipo>> agregarMotivoALista() // Acción de UI para agregar un motivo a la lista temporal
+        {
+            listaMotivosTipoComentario.Add(new Tuple<string, MotivoTipo>(comentarioMotivoIngresado, motivoSeleccionado));
+            return listaMotivosTipoComentario;
+        }
+
+        public bool tomarConfirmacionRegistrada() // Paso 9 CU: RI confirma cierre
+        {
+            confirmacionRegistrada = true; // Marca que el RI ha confirmado el cierre de la orden
+            bool validacionObs = validarObservacion();
+            bool validacionMotivoCom = validarMotivoSeleccionado();
+            Estado estadoCerrado = buscarEstadoCerrado();
+            Estado estadoFueraServicio = buscarEstadoFueraServicio();
+            DateTime fechaActual = getFechaHoraActual();
+            bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, estadoFueraServicio, fechaActual);
+            return exitoCerrar;
+        }
+
+        public bool validarObservacion() // Paso 10 CU (parte 1)
+        {
+            return !string.IsNullOrWhiteSpace(observacionIngresada);
+        }
+
+        public bool validarMotivoSeleccionado() // Paso 10 CU (parte 2)
+        {
+            return listaMotivosTipoComentario.Any();
         }
 
         public Estado buscarEstadoCerrado()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Cerrada" && e.esAmbitoOrden());
+            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoOrden() && e.esCerrado());
         }
+
         public Estado buscarEstadoFueraServicio()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.NombreEstado == "Fuera de Servicio" && e.esAmbitoSismografo());
+            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoSismografo() && e.esFueraDeServicio());
         }
 
         public DateTime getFechaHoraActual()
@@ -249,99 +308,128 @@ namespace PPAICU37
             return DateTime.Now;
         }
 
-        public bool cerrarOrden() // Lógica principal de cierre (Pasos 10, 11, 12 CU) [cite: 2]
+        public bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, Estado estadoCerrado, Estado estadoFueraServicio, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU)
         {
-            if (OrdenSeleccionada == null || !validarObservacion() || !validarMotivoSeleccionado())
+            if (ordenSeleccionada == null || !validacionObs || !validacionMotivoCom)
             {
-                // Console.WriteLine("Error: Validación fallida antes de cerrar orden."); // Para depuración
                 return false; // Validaciones fallaron
             }
 
-            DateTime fechaActual = getFechaHoraActual();
-            Estado estadoCerrado = buscarEstadoCerrado();
-            Estado estadoFueraServicio = buscarEstadoFueraServicio();
-
             if (estadoCerrado == null || estadoFueraServicio == null)
             {
-                // Console.WriteLine("Error: Estados críticos no configurados (Cerrada/Fuera de Servicio)."); // Para depuración
                 return false;
             }
 
             // Paso 11: Actualiza la orden de inspección a cerrada y registra la fecha y hora [cite: 2]
-            OrdenSeleccionada.registrarCierreOrden(fechaActual, ObservacionIngresada, estadoCerrado);
+            ordenSeleccionada.registrarCierreOrden(fechaActual, observacionIngresada, estadoCerrado);
 
             // Paso 12: Actualiza al sismógrafo como fuera de servicio, asociando motivos, fecha, y responsable [cite: 2]
-            OrdenSeleccionada.ponerSismografoFueraDeServicio(fechaActual, MotivosAgregados, estadoFueraServicio);
-            // El ResponsableLogueado es el RI que realiza el cierre.
 
-            // Console.WriteLine($"DEBUG: Orden {OrdenSeleccionada.NumeroOrden} cerrada exitosamente."); // Para depuración
+            ponerFueraServicio(estadoFueraServicio, fechaActual); // Delegar lógica a la entidad OrdenDeInspeccion
+
             return true;
         }
 
-        // El método ponerFueraServicio() del diagrama de clases del controlador [cite: 1]
-        // es invocado conceptualmente a través de OrdenDeInspeccion.ponerSismografoFueraDeServicio()
-        public void ponerFueraServicio()
+        public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
         {
-            // La lógica específica ya está encapsulada en las entidades.
-            // Este método en el controlador podría usarse para orquestación adicional si fuera necesario.
-            // Console.WriteLine($"DEBUG: Método ponerFueraServicio del controlador llamado (lógica delegada)."); // Para depuración
+            ordenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
+            notificarViaMail();
+            actualizarPantallaCCRS();
         }
 
-        // Paso 13 CU: Notificaciones [cite: 2]
-        public List<string> obtenerEmailsResponsablesReparacion()
+        // Paso 13 CU: Notificaciones
+        public void notificarViaMail()
         {
-            return _empleadosRegistrados
-                .Where(e => e.sosResponsableDeReparacion())
-                .Select(e => e.getEmail())
-                .Distinct()
-                .ToList();
+            List<string> EmailsResponsablesReparacion = new List<string>();
+
+
+            List<string> listadoMails = new List<string>();
+            string mail = "";
+
+            foreach (Empleado empleado in _empleadosRegistrados)
+                {
+                if (empleado.sosResponsableDeReparacion()) {
+                    mail = empleado.getEmail();
+                }
+
+                listadoMails.Add(mail);
+                }
+
+            if (ordenSeleccionada == null || sismografoSeleccionado == null) return;
+
+            var cambioEstadoActualSismografo = sismografoSeleccionado?.CambioEstado.FirstOrDefault(h => h.esActual());
+
+            var listaTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
+
+            string motivosStr = string.Join("; ", listaTuplas.Select(t => $"{t.Item2.Descripcion}: {t.Item1}"));
+
+            string cuerpoMail = $"Sismógrafo: {sismografoSeleccionado?.identificadorSismografo}\n" +
+                $"Nuevo Estado: {cambioEstadoActualSismografo?.Estado.nombreEstado}\n" +
+                $"Fecha y Hora: {getFechaHoraActual():g}\n" +
+                $"Motivos: {motivosStr}\n" +
+                $"Observación de Cierre Orden: {observacionIngresada}\n" +
+                $"Cerrada por: {responsableLogueado?.Empleado.nombre} {responsableLogueado?.Empleado.apellido}";
+
+            InterfazMail pantallaMail = new InterfazMail();
+            pantallaMail.enviarMail(
+                    (string)sismografoSeleccionado.identificadorSismografo,
+                    (string)cambioEstadoActualSismografo.Estado.nombreEstado,
+                    (DateTime)getFechaHoraActual(),
+                    (List<Tuple<string, MotivoTipo>>)listaTuplas,
+                    (string)observacionIngresada,
+                    string.Join(", ", listadoMails)
+                );
+            pantallaMail.ShowDialog();
+
+            MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", listadoMails)}). \n\nContenido:\n{cuerpoMail}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        // notificarViaMail() del diagrama de clases del controlador [cite: 1]
-        public string construirMensajeNotificacion()
+        public void actualizarPantallaCCRS()
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.SismografoAfectado == null) return string.Empty;
+            if (ordenSeleccionada == null || sismografoSeleccionado.getIdSismografo() == null) 
+                    return;
 
-            var sismografo = OrdenSeleccionada.SismografoAfectado;
-            var estadoActualSismografo = sismografo.EstadoActualSismografo;
+            //var estadoActualSismografo = sismografo.CambioEstadoActualSismografo.EstadoAsociado;
+            if (ordenSeleccionada == null || estacionSeleccionada == null)
+                    return;
 
-            string motivosStr = string.Join("; ", MotivosAgregados.Select(m => $"{m.Tipo.Descripcion}: {m.Comentario}"));
+               // Busco el Sismógrafo real desde la estación
+            var IdSismografo = ordenSeleccionada
+                    .EstacionSismologica
+                    .buscarIdSismografo(_sismografos);
 
-            return $"Sismógrafo: {sismografo.IdentificadorSismografo}\n" +
-                   $"Nuevo Estado: {estadoActualSismografo?.NombreEstado}\n" +
-                   $"Fecha y Hora: {getFechaHoraActual():g}\n" +
-                   $"Motivos: {motivosStr}\n" +
-                   $"Observación de Cierre Orden: {ObservacionIngresada}\n" +
-                   $"Cerrada por: {ResponsableLogueado?.Nombre} {ResponsableLogueado?.Apellido}";
+            string idSismografo = sismografoSeleccionado.getIdSismografo();
+
+            CambioEstado cambioEstadoActualSismografo = sismografoSeleccionado.CambioEstado.FirstOrDefault(h => h.esActual());
+            var estadoActual = cambioEstadoActualSismografo.Estado.nombreEstado ?? "N/A";
+
+
+            var motivosTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
+
+            PantallaCCRS pantallaCCRS = new PantallaCCRS();
+            pantallaCCRS.actualizarMonitor(
+                (string)IdSismografo,
+                (string)estadoActual,
+                (DateTime)getFechaHoraActual(),
+                (List<Tuple<string, MotivoTipo>>)motivosTuplas,
+                (string)observacionIngresada,
+                (IEnumerable<Sismografo>)_sismografos.AsReadOnly() // Pasar la lista de sismógrafos para mostrar en CCRS si es necesario
+
+            );
+            pantallaCCRS.ShowDialog();
         }
 
-        // actualizarPantalla() del diagrama de clases del controlador [cite: 1]
-        // Este es un concepto, la actualización real la hacen las pantallas al pedir datos.
-        // Para CCRS, se preparan datos específicos.
-        public object[] getDatosParaPantallaCCRS() // Adaptado de actualizarPantallaCCRS
+        public void finCU() // fin C.U. del diagrama
         {
-            if (OrdenSeleccionada == null || OrdenSeleccionada.SismografoAfectado == null) return null;
-
-            var sismografo = OrdenSeleccionada.SismografoAfectado;
-            var estadoActualSismografo = sismografo.EstadoActualSismografo;
-
-            return new object[] {
-            sismografo.IdentificadorSismografo,
-            estadoActualSismografo?.NombreEstado ?? "N/A",
-            getFechaHoraActual(),
-            new List<MotivoFueraServicio>(MotivosAgregados), // Copia de la lista
-            ObservacionIngresada
-        };
-        }
-
-        public void finCU() // fin C.U. del diagrama [cite: 1]
-        {
-            OrdenSeleccionada = null;
-            ObservacionIngresada = string.Empty;
-            MotivoSeleccionado = null;
-            MotivosAgregados.Clear();
-            ComentarioMotivoIngresado = string.Empty;
-            buscarOrdenInspeccion();
+            ordenSeleccionada = null;
+            sismografoSeleccionado = null;
+            estacionSeleccionada = null;
+            observacionIngresada = string.Empty;
+            motivoSeleccionado = null;
+   //         MotivosAgregados.Clear();
+            listaMotivosTipoComentario.Clear();
+            comentarioMotivoIngresado = string.Empty;
+            buscarOrdenInspeccion(ordenes);
             // ResponsableLogueado y SesionActual podrían persistir si el usuario sigue en la app.
             // Ordenes se recargaría con buscarOrdenInspeccion() si es necesario para una nueva operación.
             // Console.WriteLine("DEBUG: Fin del Caso de Uso. Estado del controlador parcialmente reseteado."); // Para depuración

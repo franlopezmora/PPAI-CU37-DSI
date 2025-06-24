@@ -46,122 +46,111 @@
             // grillaOrdenes
             // 
             grillaOrdenes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            grillaOrdenes.Location = new Point(38, 113);
-            grillaOrdenes.Margin = new Padding(3, 4, 3, 4);
+            grillaOrdenes.Location = new Point(33, 85);
             grillaOrdenes.Name = "grillaOrdenes";
             grillaOrdenes.RowHeadersWidth = 51;
-            grillaOrdenes.Size = new Size(584, 200);
+            grillaOrdenes.Size = new Size(511, 150);
             grillaOrdenes.TabIndex = 0;
-            grillaOrdenes.SelectionChanged += dgvOrdenesInspeccion_SelectionChanged;
+            grillaOrdenes.SelectionChanged += grillaOrdenesCambioSeleccion;
             // 
             // txtObservacion
             // 
-            txtObservacion.Location = new Point(125, 373);
-            txtObservacion.Margin = new Padding(3, 4, 3, 4);
+            txtObservacion.Location = new Point(109, 280);
             txtObservacion.Name = "txtObservacion";
-            txtObservacion.Size = new Size(260, 27);
+            txtObservacion.Size = new Size(228, 23);
             txtObservacion.TabIndex = 1;
             // 
             // cmbTiposMotivo
             // 
             cmbTiposMotivo.FormattingEnabled = true;
-            cmbTiposMotivo.Location = new Point(576, 479);
-            cmbTiposMotivo.Margin = new Padding(3, 4, 3, 4);
+            cmbTiposMotivo.Location = new Point(504, 359);
             cmbTiposMotivo.Name = "cmbTiposMotivo";
-            cmbTiposMotivo.Size = new Size(138, 28);
+            cmbTiposMotivo.Size = new Size(121, 23);
             cmbTiposMotivo.TabIndex = 2;
-            cmbTiposMotivo.SelectedIndexChanged += cmbTiposMotivo_SelectedIndexChanged;
+            cmbTiposMotivo.SelectedIndexChanged += seleccionarTipoMotivo;
             // 
             // txtComentario
             // 
-            txtComentario.Location = new Point(589, 539);
-            txtComentario.Margin = new Padding(3, 4, 3, 4);
+            txtComentario.Location = new Point(515, 404);
             txtComentario.Name = "txtComentario";
-            txtComentario.Size = new Size(114, 27);
+            txtComentario.Size = new Size(100, 23);
             txtComentario.TabIndex = 3;
             // 
             // grillaMotivos
             // 
             grillaMotivos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            grillaMotivos.Location = new Point(38, 445);
-            grillaMotivos.Margin = new Padding(3, 4, 3, 4);
+            grillaMotivos.Location = new Point(33, 334);
             grillaMotivos.Name = "grillaMotivos";
             grillaMotivos.RowHeadersWidth = 51;
-            grillaMotivos.Size = new Size(512, 200);
+            grillaMotivos.Size = new Size(448, 150);
             grillaMotivos.TabIndex = 4;
             // 
             // btnAgregarMotivo
             // 
-            btnAgregarMotivo.Location = new Point(734, 515);
-            btnAgregarMotivo.Margin = new Padding(3, 4, 3, 4);
+            btnAgregarMotivo.Location = new Point(642, 386);
             btnAgregarMotivo.Name = "btnAgregarMotivo";
-            btnAgregarMotivo.Size = new Size(86, 31);
+            btnAgregarMotivo.Size = new Size(75, 23);
             btnAgregarMotivo.TabIndex = 5;
             btnAgregarMotivo.Text = "Agregar";
             btnAgregarMotivo.UseVisualStyleBackColor = true;
-            btnAgregarMotivo.Click += btnAgregarMotivo_Click;
+            btnAgregarMotivo.Click += ingresarComentario;
             // 
             // btnConfirmar
             // 
-            btnConfirmar.Location = new Point(609, 677);
-            btnConfirmar.Margin = new Padding(3, 4, 3, 4);
+            btnConfirmar.Location = new Point(533, 508);
             btnConfirmar.Name = "btnConfirmar";
             btnConfirmar.RightToLeft = RightToLeft.No;
-            btnConfirmar.Size = new Size(117, 31);
+            btnConfirmar.Size = new Size(102, 23);
             btnConfirmar.TabIndex = 6;
             btnConfirmar.Text = "Confirmar";
             btnConfirmar.UseVisualStyleBackColor = true;
-            btnConfirmar.Click += btnCerrarOrden_Click;
+            btnConfirmar.Click += confirmarCierre;
             // 
             // btnCancelar
             // 
-            btnCancelar.Location = new Point(755, 677);
-            btnCancelar.Margin = new Padding(3, 4, 3, 4);
+            btnCancelar.Location = new Point(661, 508);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(86, 31);
+            btnCancelar.Size = new Size(75, 23);
             btnCancelar.TabIndex = 7;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = true;
-            btnCancelar.Click += btnCancelar_Click;
+            btnCancelar.Click += cancelarCierre;
             // 
             // btnIniciarSesion
             // 
-            btnIniciarSesion.Location = new Point(199, 36);
-            btnIniciarSesion.Margin = new Padding(3, 4, 3, 4);
+            btnIniciarSesion.Location = new Point(174, 27);
             btnIniciarSesion.Name = "btnIniciarSesion";
-            btnIniciarSesion.Size = new Size(260, 31);
+            btnIniciarSesion.Size = new Size(228, 23);
             btnIniciarSesion.TabIndex = 8;
             btnIniciarSesion.Text = "Iniciar sesión";
             btnIniciarSesion.UseVisualStyleBackColor = true;
-            btnIniciarSesion.Click += btnIniciarSesionSimulado_Click;
+            btnIniciarSesion.Click += opcionCerrarOrden;
             // 
             // btnSeleccionarOrden
             // 
-            btnSeleccionarOrden.Location = new Point(650, 281);
-            btnSeleccionarOrden.Margin = new Padding(3, 4, 3, 4);
+            btnSeleccionarOrden.Location = new Point(569, 211);
             btnSeleccionarOrden.Name = "btnSeleccionarOrden";
-            btnSeleccionarOrden.Size = new Size(142, 32);
+            btnSeleccionarOrden.Size = new Size(124, 24);
             btnSeleccionarOrden.TabIndex = 9;
             btnSeleccionarOrden.Text = "Seleccionar orden";
             btnSeleccionarOrden.UseVisualStyleBackColor = true;
-            btnSeleccionarOrden.Click += btnSeleccionarOrden_Click;
+            btnSeleccionarOrden.Click += seleccionarOrden;
             // 
             // btnConfirmarObservacion
             // 
-            btnConfirmarObservacion.Location = new Point(414, 372);
-            btnConfirmarObservacion.Margin = new Padding(3, 4, 3, 4);
+            btnConfirmarObservacion.Location = new Point(362, 279);
             btnConfirmarObservacion.Name = "btnConfirmarObservacion";
-            btnConfirmarObservacion.Size = new Size(172, 31);
+            btnConfirmarObservacion.Size = new Size(150, 23);
             btnConfirmarObservacion.TabIndex = 10;
             btnConfirmarObservacion.Text = "Registrar Observacion";
             btnConfirmarObservacion.UseVisualStyleBackColor = true;
-            btnConfirmarObservacion.Click += btnConfirmarObservacion_Click;
+            btnConfirmarObservacion.Click += ingresarObservacion;
             // 
             // PantallaCerrarOrden
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(866, 732);
+            ClientSize = new Size(758, 549);
             Controls.Add(btnConfirmarObservacion);
             Controls.Add(btnSeleccionarOrden);
             Controls.Add(btnIniciarSesion);
@@ -173,7 +162,6 @@
             Controls.Add(cmbTiposMotivo);
             Controls.Add(txtObservacion);
             Controls.Add(grillaOrdenes);
-            Margin = new Padding(3, 4, 3, 4);
             Name = "PantallaCerrarOrden";
             Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)grillaOrdenes).EndInit();

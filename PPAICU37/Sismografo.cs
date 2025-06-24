@@ -8,43 +8,32 @@ namespace PPAICU37
 {
     public class Sismografo
     {
-        public string IdentificadorSismografo { get; set; }
-        public string NroSerie { get; set; }
-        public DateTime FechaAdquisicion { get; set; }
-        public EstacionSismologica Estacion { get; set; }
-        public Estado EstadoActualSismografo { get; set; }
-        public List<CambioEstado> HistorialCambios { get; private set; }
+        public string identificadorSismografo { get; set; }
+        public string nroSerie { get; set; }
+        public DateTime fechaAdquisicion { get; set; }
+        public EstacionSismologica EstacionSismologica { get; set; }
+        public List<CambioEstado> CambioEstado { get; private set; }
 
         public Sismografo()
         {
-            HistorialCambios = new List<CambioEstado>();
+            CambioEstado = new List<CambioEstado>();
         }
 
-        public string getidSismografo()
+        public string getIdSismografo()
         {
-            return IdentificadorSismografo;
+            return identificadorSismografo;
         }
 
-        // Este método es invocado por OrdenDeInspeccion.ponerSismografoFueraDeServicio a través de Sismografo.cambiarEstado
-        public void ponerSismografoFueraDeServicio()
+        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio)
         {
-            // La lógica principal se maneja en OrdenDeInspeccion y cambiarEstado
-            // Console.WriteLine($"DEBUG: Sismógrafo {IdentificadorSismografo} marcado como fuera de servicio (método interno)."); // Para depuración
-        }
-
-        public void cambiarEstado(CambioEstado nuevoCambio)
-        {
-            if (nuevoCambio == null) return;
-
-            var cambioActualActivo = HistorialCambios.FirstOrDefault(h => h.esActual());
-            if (cambioActualActivo != null)
+            var cambioEstadoActualActivo = CambioEstado.FirstOrDefault(h => h.esActual());
+            if (cambioEstadoActualActivo != null)
             {
-                cambioActualActivo.finalizar(nuevoCambio.FechaHoraInicio); // Finaliza el estado anterior con la fecha de inicio del nuevo
+                cambioEstadoActualActivo.finalizar(fechaHora);
             }
+            CambioEstado nuevoCambio = PPAICU37.CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio);
+            CambioEstado.Add(nuevoCambio);
 
-            HistorialCambios.Add(nuevoCambio);
-            this.EstadoActualSismografo = nuevoCambio.EstadoAsociado;
-            // Console.WriteLine($"DEBUG: Sismógrafo {IdentificadorSismografo} cambió a estado {EstadoActualSismografo?.NombreEstado}."); // Para depuración
         }
     }
 }

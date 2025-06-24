@@ -15,127 +15,43 @@ namespace PPAICU37
         {
             InitializeComponent();
             _controlador = new ControladorCerrarOrden();
-            ConfigurarEstadoInicialUI();
+            habilitar();
         }
 
-        private void ConfigurarEstadoInicialUI()
+        private void opcionCerrarOrden(object sender, EventArgs e)
         {
-            HabilitarSeccionSeleccionOrden(false); // dgvOrdenesInspeccion y btnSeleccionarOrden
-            HabilitarSeccionObservacion(false);    // txtObservacionCierre y btnConfirmarObservacion
-            HabilitarSeccionMotivos(false);       // cmbTiposMotivo, txtComentarioMotivo, btnAgregarMotivo, dgvMotivosFueraServicio
+            habilitarSeccionSeleccionOrden(true);
+            DataTable tablaFiltrada = _controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION");
+            MessageBox.Show($"Login simulado exitoso para: {_controlador.responsableLogueado.Empleado}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            btnCancelar.Enabled = true;
+            mostrarOrdenesConAsociados(tablaFiltrada);
+            btnIniciarSesion.Enabled = false;
+        }
 
-            btnConfirmar.Enabled = false;
+        private void habilitar()
+        {
+            habilitarSeccionSeleccionOrden(false); // dgvOrdenesInspeccion y btnSeleccionarOrden
+            solicitarIngresoObservacion(false);    // txtObservacionCierre y btnConfirmarObservacion
+            solicitarSeleccionTiposMotivos(false);
+            solicitarComentario(false);
+
+            solicitarConfirmacion(false);
             btnCancelar.Enabled = false; // Se habilita después del login
             btnIniciarSesion.Enabled = true;
         }
 
-        private void HabilitarSeccionSeleccionOrden(bool habilitar)
+        private void mostrarOrdenesConAsociados(DataTable dt)
         {
-            grillaOrdenes.Enabled = habilitar;
-            // btnSeleccionarOrden se habilita solo cuando hay una fila seleccionada en la grilla
-            if (!habilitar) btnSeleccionarOrden.Enabled = false;
+            // Asigno al DataGridView
+            grillaOrdenes.DataSource = dt;
+
+            // (Opcional) afinaciones de UI
+            grillaOrdenes.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+            grillaOrdenes.ReadOnly = true;
         }
 
-        private void HabilitarSeccionObservacion(bool habilitar)
-        {
-            txtObservacion.Enabled = habilitar;
-            btnConfirmarObservacion.Enabled = habilitar;
-            if (habilitar)
-            {
-                // solicitarIngresoObservacion() - Se le da foco al txt
-                txtObservacion.Focus();
-            }
-        }
-
-        private void HabilitarSeccionMotivos(bool habilitar)
-        {
-            cmbTiposMotivo.Enabled = habilitar;
-            txtComentario.Enabled = habilitar;
-            btnAgregarMotivo.Enabled = habilitar;
-            grillaMotivos.Enabled = habilitar;
-        }
-
-        private void btnIniciarSesionSimulado_Click(object sender, EventArgs e)
-        {
-            if (_controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION"))
-            {
-                MessageBox.Show($"Login simulado exitoso para: {_controlador.ResponsableLogueado.NombreUsuario}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                HabilitarSeccionSeleccionOrden(true);
-                btnCancelar.Enabled = true;
-                mostrarOrdenes();
-                cargarTiposMotivoComboBox(); // Podemos cargarlos aquí una vez
-                btnIniciarSesion.Enabled = false;
-            }
-            else
-            {
-                MessageBox.Show("Error en login simulado o el controlador no procesó la opción.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void mostrarOrdenes()
-        {
-            grillaOrdenes.DataSource = null;
-            _ordenTemporalmenteSeleccionadaEnGrilla = null; // Resetear la selección temporal
-            btnSeleccionarOrden.Enabled = false; // Deshabilitar hasta nueva selección en grilla
-
-            if (_controlador.Ordenes != null && _controlador.Ordenes.Any())
-            {
-                var ordenesParaMostrar = _controlador.Ordenes.Select(o => new {
-                    o.NumeroOrden,
-                    SismografoID = o.SismografoAfectado?.IdentificadorSismografo,
-                    FechaFinalizacion = o.FechaHoraFinalizacion?.ToString("g"),
-                    Estado = o.EstadoActual?.NombreEstado
-                }).ToList();
-                grillaOrdenes.DataSource = ordenesParaMostrar;
-            }
-            else
-            {
-                MessageBox.Show("No hay órdenes de inspección completamente realizadas para mostrar.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            // Deshabilitar las siguientes secciones hasta que se seleccione una orden explícitamente
-            HabilitarSeccionObservacion(false);
-            HabilitarSeccionMotivos(false);
-            btnConfirmar.Enabled = false;
-        }
-
-        private void cargarTiposMotivoComboBox()
-        {
-            cmbTiposMotivo.DataSource = null;
-            cmbTiposMotivo.DataSource = _controlador.cargarTiposMotivos();
-            cmbTiposMotivo.DisplayMember = "Descripcion";
-        }
-
-        // Evento cuando cambia la selección en la grilla de órdenes
-        private void dgvOrdenesInspeccion_SelectionChanged(object sender, EventArgs e)
-        {
-            if (grillaOrdenes.CurrentRow != null && grillaOrdenes.CurrentRow.DataBoundItem != null)
-            {
-                var selectedRowItem = grillaOrdenes.CurrentRow.DataBoundItem;
-                int numeroOrdenSeleccionada = (int)selectedRowItem.GetType().GetProperty("NumeroOrden").GetValue(selectedRowItem, null);
-                // Guardamos la orden seleccionada en la grilla temporalmente
-                _ordenTemporalmenteSeleccionadaEnGrilla = _controlador.Ordenes.FirstOrDefault(o => o.NumeroOrden == numeroOrdenSeleccionada);
-
-                if (_ordenTemporalmenteSeleccionadaEnGrilla != null)
-                {
-                    btnSeleccionarOrden.Enabled = true; // Habilitar el botón "Seleccionar Orden"
-                }
-                else
-                {
-                    btnSeleccionarOrden.Enabled = false;
-                }
-            }
-            else
-            {
-                _ordenTemporalmenteSeleccionadaEnGrilla = null;
-                btnSeleccionarOrden.Enabled = false;
-            }
-        }
-
-        // NUEVO: Evento para el botón "Seleccionar Orden"
-        // Este método ahora es el que realmente confirma la selección de la orden en el controlador
-        // y habilita la siguiente sección (observaciones).
-        // Corresponde al método `seleccionarOrden()` del diagrama de boundary [cite: 1]
-        private void btnSeleccionarOrden_Click(object sender, EventArgs e)
+        private void seleccionarOrden(object sender, EventArgs e)
         {
             if (_ordenTemporalmenteSeleccionadaEnGrilla != null)
             {
@@ -144,12 +60,13 @@ namespace PPAICU37
                 // Limpiar campos para la nueva selección
                 txtObservacion.Text = string.Empty;
                 txtComentario.Text = string.Empty;
-                _controlador.MotivosAgregados.Clear();
-                mostrarMotivosAgregados();
+                _controlador.listaMotivosTipoComentario.Clear();
+                mostrarMotivosAgregados(_controlador.listaMotivosTipoComentario);
 
-                HabilitarSeccionObservacion(true); // Habilita txtObservacionCierre y btnConfirmarObservacion
-                HabilitarSeccionMotivos(false);    // La sección de motivos se habilita DESPUÉS de confirmar observación
-                btnConfirmar.Enabled = false;    // El botón final de cierre se habilita después de confirmar motivos
+                solicitarIngresoObservacion(true); // Habilita txtObservacionCierre y btnConfirmarObservacion
+                solicitarSeleccionTiposMotivos(false);
+                solicitarComentario(false);
+                solicitarConfirmacion(false);
 
                 grillaOrdenes.Enabled = false; // Opcional: deshabilitar la grilla para evitar cambios
                 btnSeleccionarOrden.Enabled = false;  // Deshabilitar este botón una vez usado
@@ -160,9 +77,18 @@ namespace PPAICU37
             }
         }
 
-        // NUEVO: Evento para el botón "Confirmar Observación"
-        // Corresponde a los métodos `ingresarObservacion()` y `solicitarConfirmacion()` (parcial) del diagrama [cite: 1]
-        private void btnConfirmarObservacion_Click(object sender, EventArgs e)
+        private void solicitarIngresoObservacion(bool habilitar)
+        {
+            txtObservacion.Enabled = habilitar;
+            solicitarConfirmacion(habilitar);
+            if (habilitar)
+            {
+                // solicitarIngresoObservacion() - Se le da foco al txt
+                txtObservacion.Focus();
+            }
+        }
+
+        private void ingresarObservacion(object sender, EventArgs e)
         {
             string observacion = txtObservacion.Text;
             if (string.IsNullOrWhiteSpace(observacion)) // Validación básica
@@ -173,72 +99,90 @@ namespace PPAICU37
                 return;
             }
 
-            _controlador.tomarObservacionIngresada(observacion); // `ingresarObservacion()`
+            _controlador.tomarObservacionIngresada(observacion);
             MessageBox.Show("Observación de cierre registrada.", "Confirmado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             txtObservacion.Enabled = false;         // Deshabilitar después de confirmar
-            btnConfirmarObservacion.Enabled = false;    // Deshabilitar después de confirmar
+            solicitarConfirmacion(false);    // Deshabilitar después de confirmar
 
-            HabilitarSeccionMotivos(true); // Ahora habilitar la sección de motivos
-                                           // btnCerrarOrden todavía no, hasta que se agreguen motivos.
-                                           // El método `solicitarConfirmacion()` del diagrama para el cierre final está en `btnCerrarOrden_Click`
+            mostrarTiposMotivos();
+
+            solicitarSeleccionTiposMotivos(true);
+            solicitarComentario(true);
         }
 
-        // Evento cuando cambia el tipo de motivo seleccionado
-        private void cmbTiposMotivo_SelectedIndexChanged(object sender, EventArgs e)
+        private void mostrarTiposMotivos()
         {
-            if (cmbTiposMotivo.SelectedItem is MotivoTipo motivoTipoSeleccionado)
+            cmbTiposMotivo.DataSource = null;
+            cmbTiposMotivo.DataSource = _controlador.buscarTiposMotivos();
+            cmbTiposMotivo.DisplayMember = "Descripcion";
+        }
+
+        private void solicitarSeleccionTiposMotivos(bool habilitar)
+        {
+            cmbTiposMotivo.Enabled = habilitar;
+            btnAgregarMotivo.Enabled = habilitar;
+            grillaMotivos.Enabled = habilitar;
+        }
+
+        private void seleccionarTipoMotivo(object sender, EventArgs e)
+        {
+            btnAgregarMotivo.Enabled = cmbTiposMotivo.SelectedItem is MotivoTipo;
+        }
+
+        private void solicitarComentario(bool habilitar)
+        {
+            txtComentario.Enabled = habilitar;
+        }
+
+        private void ingresarComentario(object sender, EventArgs e)
+        {
+            string comentario = txtComentario.Text;
+            if (!(cmbTiposMotivo.SelectedItem is MotivoTipo motivoTipoSeleccionado))
             {
-                _controlador.tomarMotivoSeleccionado(motivoTipoSeleccionado);
+                MessageBox.Show(
+                    "Debe seleccionar un tipo de motivo.",
+                    "Dato incompleto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(comentario))
+            {
+                MessageBox.Show(
+                    "Debe escribir un comentario para el motivo.",
+                    "Dato incompleto",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                txtComentario.Focus();
+                return;
+            }
+            _controlador.tomarTipoMotivoSeleccionado(motivoTipoSeleccionado);
+            _controlador.tomarComentarioIngresado(txtComentario.Text);
+            List<Tuple<string, MotivoTipo>> lista = _controlador.agregarMotivoALista();
+
+            mostrarMotivosAgregados(lista);
+
+            txtComentario.Clear();
+            cmbTiposMotivo.Focus();
+
+            if (_controlador.listaMotivosTipoComentario.Any())
+            {
+                solicitarConfirmacion(true);
             }
         }
 
-        // Evento para el botón "Agregar Motivo"
-        private void btnAgregarMotivo_Click(object sender, EventArgs e)
+        private void solicitarConfirmacion(bool habilitar)
         {
-            if (cmbTiposMotivo.SelectedItem is MotivoTipo)
-            {
-                _controlador.tomarComentarioIngresado(txtComentario.Text);
-
-                if (_controlador.agregarMotivoALista())
-                {
-                    mostrarMotivosAgregados();
-                    txtComentario.Clear();
-                    cmbTiposMotivo.Focus();
-                    // Después de agregar al menos un motivo, habilitar el botón de Cerrar Orden
-                    if (_controlador.MotivosAgregados.Any())
-                    {
-                        btnConfirmar.Enabled = true;
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Debe seleccionar un tipo de motivo y escribir un comentario.", "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Debe seleccionar un tipo de motivo.", "Dato incompleto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            btnConfirmar.Enabled = habilitar;
         }
 
-        private void mostrarMotivosAgregados()
+        private void confirmarCierre(object sender, EventArgs e)
         {
-            grillaMotivos.DataSource = null;
-            if (_controlador.MotivosAgregados.Any())
-            {
-                grillaMotivos.DataSource = _controlador.MotivosAgregados.Select(m => new
-                {
-                    DescripcionMotivo = m.Tipo.Descripcion,
-                    m.Comentario
-                }).ToList();
-            }
-        }
-
-        // Evento para el botón "Cerrar Orden"
-        private void btnCerrarOrden_Click(object sender, EventArgs e)
-        {
-            if (_controlador.OrdenSeleccionada == null)
+            if (_controlador.ordenSeleccionada == null)
             {
                 MessageBox.Show("Primero debe seleccionar y confirmar una orden.", "Acción requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -256,7 +200,8 @@ namespace PPAICU37
             if (!_controlador.validarMotivoSeleccionado())
             {
                 MessageBox.Show("Debe agregar al menos un motivo de fuera de servicio.", "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                HabilitarSeccionMotivos(true); // Re-habilitar para que agregue motivos
+                solicitarSeleccionTiposMotivos(true); // Re-habilitar para que agregue motivos
+                solicitarComentario(true);
                 cmbTiposMotivo.Focus();
                 return;
             }
@@ -264,84 +209,120 @@ namespace PPAICU37
             // `solicitarConfirmacion()` del diagrama para el cierre final
             var confirmResult = MessageBox.Show("¿Confirma el cierre final de esta orden de inspección?",
                                              "Confirmar Cierre Final", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirmResult == DialogResult.Yes)
+
+            if (confirmResult != DialogResult.Yes) return;
+
+            bool exito = _controlador.tomarConfirmacionRegistrada();
+            if (!exito)
             {
-                _controlador.tomarConfirmacionRegistrada();
-                if (_controlador.cerrarOrden())
-                {
-                    MessageBox.Show("Orden cerrada. Sismógrafo puesto fuera de servicio.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    var datosCCRS = _controlador.getDatosParaPantallaCCRS();
-                    if (datosCCRS != null)
-                    {
-                        PantallaCCRS pantallaCCRS = new PantallaCCRS();
-                        pantallaCCRS.CargarDatos(
-                            (string)datosCCRS[0],
-                            (string)datosCCRS[1],
-                            (DateTime)datosCCRS[2],
-                            (List<MotivoFueraServicio>)datosCCRS[3],
-                            (string)datosCCRS[4]
-                        );
-                        pantallaCCRS.ShowDialog(this);
-                    }
-
-                    string mensajeNotificacion = _controlador.construirMensajeNotificacion();
-                    List<string> emailsReparadores = _controlador.obtenerEmailsResponsablesReparacion();
-
-                    PantallaMail pantallaMail = new PantallaMail();
-                    if (datosCCRS != null)
-                    {
-                        pantallaMail.CargarDatos(
-                            (string)datosCCRS[0],
-                            (string)datosCCRS[1],
-                            (DateTime)datosCCRS[2],
-                            (List<MotivoFueraServicio>)datosCCRS[3],
-                            (string)datosCCRS[4],
-                            string.Join(", ", emailsReparadores)
-                        );
-                        pantallaMail.ShowDialog(this);
-                    }
-
-                    MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", emailsReparadores)}). \n\nContenido:\n{mensajeNotificacion}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    _controlador.finCU();
-                    ConfigurarEstadoInicialUI(); // Volver al estado inicial para una nueva operación
-                    mostrarOrdenes(); // Recargar la grilla de órdenes (estará vacía o con nuevas órdenes si la lógica lo permite)
-                    HabilitarSeccionSeleccionOrden(true); // Permitir seleccionar otra orden
-                    grillaOrdenes.Enabled = true;
-                    txtObservacion.Clear();
-                    mostrarMotivosAgregados(); // Limpiar la grilla de motivos
-                }
-                else
-                {
-                    MessageBox.Show("Error al cerrar la orden. Verifique los datos y el estado del sistema.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show(
+                    "Error al cerrar la orden. Verifique los datos y el estado del sistema.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return;
             }
+            MessageBox.Show(
+                 "Orden cerrada. Sismógrafo puesto fuera de servicio.",
+                 "Operación Exitosa",
+                 MessageBoxButtons.OK,
+                 MessageBoxIcon.Information
+            );
+
+            _controlador.finCU();
+            habilitar(); // Volver al estado inicial para una nueva operación
+
+            List<OrdenDeInspeccion> Ordenes = _controlador.ordenes; // Obtener las órdenes filtradas del controlador
+            DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
+            mostrarOrdenesConAsociados(tablaFiltrada);
+
+            habilitarSeccionSeleccionOrden(true); // Permitir seleccionar otra orden
+            grillaOrdenes.Enabled = true;
+            txtObservacion.Clear();
+            mostrarMotivosAgregados(_controlador.listaMotivosTipoComentario); // Limpiar la grilla de motivos
+
         }
 
-        // Evento para el botón "Cancelar"
-        private void btnCancelar_Click(object sender, EventArgs e)
+        private void habilitarSeccionSeleccionOrden(bool habilitar)
+        {
+            grillaOrdenes.Enabled = habilitar;
+            // btnSeleccionarOrden se habilita solo cuando hay una fila seleccionada en la grilla
+            if (!habilitar) btnSeleccionarOrden.Enabled = false;
+        }
+
+        private void grillaOrdenesCambioSeleccion(object sender, EventArgs e)
+        {
+            // 1) Si no hay fila seleccionada, deshabilito y salgo
+            if (grillaOrdenes.CurrentRow == null)
+            {
+                _ordenTemporalmenteSeleccionadaEnGrilla = null;
+                btnSeleccionarOrden.Enabled = false;
+                return;
+            }
+
+            // 2) Casteo a DataRowView para extraer el campo "Número Orden"
+            var drv = grillaOrdenes.CurrentRow.DataBoundItem as DataRowView;
+            if (drv == null
+             || drv["Número Orden"] == DBNull.Value
+             || !int.TryParse(drv["Número Orden"].ToString(), out int nro))
+            {
+                _ordenTemporalmenteSeleccionadaEnGrilla = null;
+                btnSeleccionarOrden.Enabled = false;
+                return;
+            }
+
+            // 3) Busco la entidad completa por ese número (opcional)
+            _ordenTemporalmenteSeleccionadaEnGrilla =
+                _controlador.ordenes
+                    .FirstOrDefault(o => o.numeroOrden == nro);
+
+            // 4) Habilito el botón si encontré algo
+            btnSeleccionarOrden.Enabled = _ordenTemporalmenteSeleccionadaEnGrilla != null;
+        }
+
+        private void mostrarMotivosAgregados(List<Tuple<string, MotivoTipo>> lista)
+        {
+            grillaMotivos.DataSource = null;
+            grillaMotivos.DataSource =
+              lista
+                .Select(t => new
+                {
+                    Comentario = t.Item1,
+                    Tipo = t.Item2.Descripcion
+                })
+                .ToList();
+        }
+
+        private void cancelarCierre(object sender, EventArgs e)
         {
             // Reiniciar el estado del CU en el controlador y la UI
             _controlador.finCU(); // Llama a finCU para limpiar el estado del controlador
 
             // Resetear la UI a un estado similar al inicial después del login
             _ordenTemporalmenteSeleccionadaEnGrilla = null;
-            txtObservacionCierre.Clear();
+            txtObservacion.Clear();
             if (cmbTiposMotivo.Items.Count > 0) cmbTiposMotivo.SelectedIndex = -1;
-            txtComentarioMotivo.Clear();
+            txtComentario.Clear();
             // MotivosAgregados se limpian en finCU del controlador, aquí actualizamos la grilla
-            mostrarMotivosAgregados();
+            mostrarMotivosAgregados(_controlador.listaMotivosTipoComentario);
 
-            HabilitarSeccionSeleccionOrden(true); // Permitir volver a seleccionar orden
-            dgvOrdenesInspeccion.Enabled = true;  // Asegurarse que la grilla esté activa
-            if (dgvOrdenesInspeccion.Rows.Count > 0) dgvOrdenesInspeccion.ClearSelection();
+            habilitarSeccionSeleccionOrden(true); // Permitir volver a seleccionar orden
+            grillaOrdenes.Enabled = true;  // Asegurarse que la grilla esté activa
+            if (grillaOrdenes.Rows.Count > 0) grillaOrdenes.ClearSelection();
 
-            HabilitarSeccionObservacion(false);
-            HabilitarSeccionMotivos(false);
-            btnCerrarOrden.Enabled = false;
+            solicitarIngresoObservacion(false);
+            solicitarSeleccionTiposMotivos(false);
+            solicitarComentario(false);
 
-            mostrarOrdenes(); // Recargar las órdenes disponibles
+            solicitarConfirmacion(false);
+
+            //List<OrdenDeInspeccion> OrdenesFiltradas = _controlador.buscarOrdenInspeccion();
+            //mostrarOrdenes(OrdenesFiltradas); // Recargar las órdenes disponibles
+
+            List<OrdenDeInspeccion> Ordenes = _controlador.ordenes; // Obtener las órdenes filtradas del controlador
+            DataTable tablaFiltrada = _controlador.buscarOrdenInspeccion(Ordenes);
+            mostrarOrdenesConAsociados(tablaFiltrada);
 
             MessageBox.Show("Operación cancelada. Puede seleccionar una nueva orden.", "Cancelado", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

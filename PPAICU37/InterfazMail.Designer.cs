@@ -1,6 +1,6 @@
 ﻿namespace PPAICU37
 {
-    partial class PantallaMail
+    partial class InterfazMail
     {
         /// <summary>
         /// Required designer variable.
@@ -44,7 +44,6 @@
             lblIdSismografoMail.Size = new Size(102, 20);
             lblIdSismografoMail.TabIndex = 0;
             lblIdSismografoMail.Text = "Id Sismografo";
-            lblIdSismografoMail.Click += lblIdSismografoMail_Click;
             // 
             // lblNombreEstadoMail
             // 
@@ -81,7 +80,7 @@
             txtComentariosMail.Name = "txtComentariosMail";
             txtComentariosMail.Size = new Size(321, 27);
             txtComentariosMail.TabIndex = 4;
-            txtComentariosMail.TextChanged += txtComentariosMail_TextChanged;
+            txtComentariosMail.Enabled = false;
             // 
             // lblDestinatariosMail
             // 
@@ -106,7 +105,6 @@
             Margin = new Padding(3, 4, 3, 4);
             Name = "PantallaMail";
             Text = "PantallaMail";
-            Load += PantallaMail_Load;
             ResumeLayout(false);
             PerformLayout();
         }

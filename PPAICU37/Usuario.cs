@@ -8,13 +8,13 @@ namespace PPAICU37
 {
     public class Usuario
     {
-        public string NombreUsuario { get; set; }
-        public string Contrasena { get; set; }
-        public Empleado EmpleadoAsociado { get; set; }
+        public string nombreUsuario { get; set; }
+        public string contrasena { get; set; }
+        public Empleado Empleado { get; set; }
 
         public Empleado getEmpleado()
         {
-            return EmpleadoAsociado;
+            return Empleado;
         }
     }
 }
