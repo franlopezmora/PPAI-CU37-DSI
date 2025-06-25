@@ -25,7 +25,7 @@ namespace PPAICU37
         {
             habilitarSeccionSeleccionOrden(true);
             DataTable tablaFiltrada = _controlador.tomarOpcionSeleccionada("CERRAR_ORDEN_INSPECCION");
-            MessageBox.Show($"Login simulado exitoso para: {_controlador.responsableLogueado.Empleado}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Login simulado exitoso para: {_controlador.responsableLogueado}", "Login", MessageBoxButtons.OK, MessageBoxIcon.Information);
             btnCancelar.Enabled = true;
             mostrarOrdenesConAsociados(tablaFiltrada);
             btnIniciarSesion.Enabled = false;
@@ -43,8 +43,10 @@ namespace PPAICU37
 
         private void mostrarOrdenesConAsociados(DataTable dt)
         {
+            grillaOrdenes.AllowUserToAddRows = false;
             // Asigno al DataGridView
             grillaOrdenes.DataSource = dt;
+            btnSeleccionarOrden.Enabled = dt.Rows.Count > 0;
 
             // (Opcional) afinaciones de UI
             grillaOrdenes.AutoSizeColumnsMode =
@@ -84,7 +86,6 @@ namespace PPAICU37
             solicitarConfirmacion(habilitar);
             if (habilitar)
             {
-                // solicitarIngresoObservacion() - Se le da foco al txt
                 txtObservacion.Focus();
             }
         }
@@ -100,22 +101,22 @@ namespace PPAICU37
                 return;
             }
 
-            _controlador.tomarObservacionIngresada(observacion);
+            List<MotivoTipo> tiposMotivos = _controlador.tomarObservacionIngresada(observacion);
             MessageBox.Show("Observación de cierre registrada.", "Confirmado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             txtObservacion.Enabled = false;         // Deshabilitar después de confirmar
             solicitarConfirmacion(false);    // Deshabilitar después de confirmar
-
-            mostrarTiposMotivos();
+            
+            mostrarTiposMotivos(tiposMotivos);
 
             solicitarSeleccionTiposMotivos(true);
             solicitarComentario(true);
         }
 
-        private void mostrarTiposMotivos()
+        private void mostrarTiposMotivos(List<MotivoTipo> tiposMotivos)
         {
             cmbTiposMotivo.DataSource = null;
-            cmbTiposMotivo.DataSource = _controlador.buscarTiposMotivos();
+            cmbTiposMotivo.DataSource = tiposMotivos;
             cmbTiposMotivo.DisplayMember = "Descripcion";
         }
 
@@ -193,25 +194,21 @@ namespace PPAICU37
                 return;
             }
 
-            // La observación ya fue tomada y validada (básicamente) por btnConfirmarObservacion_Click
-            // pero el controlador tiene su propia validación más robusta.
-            if (!_controlador.validarObservacion()) // Esta validación usa la observación guardada en el controlador
+            if (!_controlador.validarObservacion())
             {
                 MessageBox.Show("La observación de cierre no fue registrada o es inválida.", "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                // Reactivar sección observación si fuera necesario o guiar al usuario.
-                // Por ahora, es un estado anómalo si se llega aquí con observación inválida.
                 return;
             }
+
             if (!_controlador.validarMotivoSeleccionado())
             {
                 MessageBox.Show("Debe agregar al menos un motivo de fuera de servicio.", "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                solicitarSeleccionTiposMotivos(true); // Re-habilitar para que agregue motivos
+                solicitarSeleccionTiposMotivos(true); 
                 solicitarComentario(true);
                 cmbTiposMotivo.Focus();
                 return;
             }
-
-            // `solicitarConfirmacion()` del diagrama para el cierre final
+                   
             var confirmResult = MessageBox.Show("¿Confirma el cierre final de esta orden de inspección?",
                                              "Confirmar Cierre Final", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -245,7 +242,6 @@ namespace PPAICU37
                  MessageBoxIcon.Information
             );
 
-            _controlador.finCU();
             habilitar(); // Volver al estado inicial para una nueva operación
 
             List<OrdenDeInspeccion> Ordenes = _controlador.ordenes; // Obtener las órdenes filtradas del controlador
@@ -271,7 +267,14 @@ namespace PPAICU37
         private void grillaOrdenesCambioSeleccion(object sender, EventArgs e)
         {
             // 1) Si no hay fila seleccionada, deshabilito y salgo
-            if (grillaOrdenes.CurrentRow == null)
+            if (grillaOrdenes.CurrentRow == null || grillaOrdenes.CurrentRow.IsNewRow)
+            {
+                _ordenTemporalmenteSeleccionadaEnGrilla = null;
+                btnSeleccionarOrden.Enabled = false;
+                return;
+            }
+
+            if (grillaOrdenes.CurrentRow.IsNewRow)
             {
                 _ordenTemporalmenteSeleccionadaEnGrilla = null;
                 btnSeleccionarOrden.Enabled = false;

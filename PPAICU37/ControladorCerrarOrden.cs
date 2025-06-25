@@ -15,7 +15,7 @@ namespace PPAICU37
         public Sismografo sismografoSeleccionado { get; private set; }
         public EstacionSismologica estacionSeleccionada { get; private set; }
         public string observacionIngresada { get; private set; }
-        public Usuario responsableLogueado { get; private set; }
+        public Empleado responsableLogueado { get; private set; }
         public List<OrdenDeInspeccion> ordenes { get; private set; }
         public MotivoTipo motivoSeleccionado { get; private set; }
         public string comentarioMotivoIngresado { get; private set; }
@@ -31,8 +31,9 @@ namespace PPAICU37
         public List<Sismografo> _sismografos; // Lista de sismógrafos
         public List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario;
         private DestinoNotificacion destinoNotificacion = DestinoNotificacion.Ambas;
-
-
+        private string idSismografoSeleccionado;
+        private string nombreEstadoActualFueraServicio;
+        private DateTime fechaHoraActual;
         public enum DestinoNotificacion
         {
             Ambas,
@@ -111,7 +112,7 @@ namespace PPAICU37
             ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 101, fechaHoraInicio = DateTime.Now.AddDays(-10), fechaHoraFinalizacion = DateTime.Now.AddDays(-8), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo1.EstacionSismologica, observacionCierre = "Muy mal"});
             ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 102, fechaHoraInicio = DateTime.Now.AddDays(-5), fechaHoraFinalizacion = DateTime.Now.AddDays(-3), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
             ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 103, fechaHoraInicio = DateTime.Now.AddDays(-2), Estado = estadoPendiente, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
-            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 104, fechaHoraInicio = DateTime.Now.AddDays(-15), fechaHoraFinalizacion = DateTime.Now.AddDays(-12), Estado = estadoRealizada, Empleado = empleado2 , EstacionSismologica = sismo1.EstacionSismologica});
+            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 104, fechaHoraInicio = DateTime.Now.AddDays(-15), fechaHoraFinalizacion = DateTime.Now.AddDays(-12), Estado = estadoRealizada, Empleado = empleado1 , EstacionSismologica = sismo1.EstacionSismologica});
 
             // Usuarios
             var usuarioLogueado = new Usuario
@@ -161,9 +162,9 @@ namespace PPAICU37
             return _usuariosRegistrados.FirstOrDefault(u => u.nombreUsuario == nombreUsuario && u.contrasena == contrasena);
         }
 
-        public Usuario buscarUsuario(Sesion _sesionActual)
+        public Empleado buscarUsuario(Sesion _sesionActual)
         {
-            Usuario empleadoBuscado = _sesionActual.getUsuario();
+            Empleado empleadoBuscado = _sesionActual.getUsuario();
 
             return empleadoBuscado;
         }
@@ -186,11 +187,7 @@ namespace PPAICU37
                 if (orden.Estado.esCompletamenteRealizada() && orden.esDeEmpleado(responsableLogueado))
                 {
                     infoOrden = orden.getInfoOrdenInspeccion(_sismografos);
-
-                    int NumeroOrden;
-                    string FechaHoraFinalizacion;
-                    string EstacionSismologica;
-                    string IdSismografo; ;
+                    idSismografoSeleccionado = infoOrden[2]; // Asigna el ID del sismógrafo seleccionado
 
                     resultado = new string[] { infoOrden[0], infoOrden[3], infoOrden[1], infoOrden[2] };
                     listaResultado.Add(resultado); // Agrega la información de la orden a la lista de resultados
@@ -242,9 +239,10 @@ namespace PPAICU37
             motivoSeleccionado = null;
         }
 
-        public void tomarObservacionIngresada(string observacion) // Paso 5 CU
+        public List<MotivoTipo> tomarObservacionIngresada(string observacion) // Paso 5 CU
         {
             observacionIngresada = observacion;
+            return buscarTiposMotivos();
         }
 
         public List<MotivoTipo> buscarTiposMotivos() // Paso 6 CU (cargar tipos para UI)
@@ -288,6 +286,7 @@ namespace PPAICU37
             Estado estadoCerrado = buscarEstadoCerrado();
             Estado estadoFueraServicio = buscarEstadoFueraServicio();
             DateTime fechaActual = getFechaHoraActual();
+            fechaHoraActual = fechaActual;
 
             bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, estadoFueraServicio, fechaActual);
 
@@ -300,10 +299,10 @@ namespace PPAICU37
                     actualizarPantallaCCRS();
             }
 
+            finCU(); // Limpia el estado del controlador al finalizar el CU
+
             return exitoCerrar;
         }
-
-
 
         public bool validarObservacion() // Paso 10 CU (parte 1)
         {
@@ -354,7 +353,9 @@ namespace PPAICU37
 
         public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
         {
-            ordenSeleccionada.ponerSismografoFueraDeServicio(getFechaHoraActual(), listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
+            string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHoraActual, listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
+            
+            nombreEstadoActualFueraServicio = nombreEstadoFueraServicio;
         }
 
         // Paso 13 CU: Notificaciones
@@ -377,24 +378,22 @@ namespace PPAICU37
 
             if (ordenSeleccionada == null || sismografoSeleccionado == null) return;
 
-            var cambioEstadoActualSismografo = sismografoSeleccionado?.CambioEstado.FirstOrDefault(h => h.esActual());
-
             var listaTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
 
             string motivosStr = string.Join("; ", listaTuplas.Select(t => $"{t.Item2.Descripcion}: {t.Item1}"));
 
-            string cuerpoMail = $"Sismógrafo: {sismografoSeleccionado?.identificadorSismografo}\n" +
-                $"Nuevo Estado: {cambioEstadoActualSismografo?.Estado.nombreEstado}\n" +
-                $"Fecha y Hora: {getFechaHoraActual():g}\n" +
+            string cuerpoMail = $"Sismógrafo: {idSismografoSeleccionado}\n" +
+                $"Nuevo Estado: {nombreEstadoActualFueraServicio}\n" +
+                $"Fecha y Hora: {fechaHoraActual:g}\n" +
                 $"Motivos: {motivosStr}\n" +
                 $"Observación de Cierre Orden: {observacionIngresada}\n" +
-                $"Cerrada por: {responsableLogueado?.Empleado.nombre} {responsableLogueado?.Empleado.apellido}";
+                $"Cerrada por: {responsableLogueado}";
 
             InterfazMail pantallaMail = new InterfazMail();
             pantallaMail.enviarMail(
                     (string)sismografoSeleccionado.identificadorSismografo,
-                    (string)cambioEstadoActualSismografo.Estado.nombreEstado,
-                    (DateTime)getFechaHoraActual(),
+                    (string)nombreEstadoActualFueraServicio,
+                    fechaHoraActual,
                     (List<Tuple<string, MotivoTipo>>)listaTuplas,
                     (string)observacionIngresada,
                     string.Join(", ", listadoMails)
@@ -406,31 +405,20 @@ namespace PPAICU37
 
         public void actualizarPantallaCCRS()
         {
-            if (ordenSeleccionada == null || sismografoSeleccionado.getIdSismografo() == null) 
+            if (ordenSeleccionada == null || idSismografoSeleccionado == null) 
                     return;
 
             //var estadoActualSismografo = sismografo.CambioEstadoActualSismografo.EstadoAsociado;
             if (ordenSeleccionada == null || estacionSeleccionada == null)
                     return;
 
-               // Busco el Sismógrafo real desde la estación
-            var IdSismografo = ordenSeleccionada
-                    .EstacionSismologica
-                    .buscarIdSismografo(_sismografos);
-
-            string idSismografo = sismografoSeleccionado.getIdSismografo();
-
-            CambioEstado cambioEstadoActualSismografo = sismografoSeleccionado.CambioEstado.FirstOrDefault(h => h.esActual());
-            var estadoActual = cambioEstadoActualSismografo.Estado.nombreEstado ?? "N/A";
-
-
             var motivosTuplas = listaMotivosTipoComentario; // Lista de motivos y comentarios
 
             PantallaCCRS pantallaCCRS = new PantallaCCRS();
             pantallaCCRS.actualizarMonitor(
-                (string)IdSismografo,
-                (string)estadoActual,
-                (DateTime)getFechaHoraActual(),
+                idSismografoSeleccionado,
+                nombreEstadoActualFueraServicio,
+                fechaHoraActual,
                 (List<Tuple<string, MotivoTipo>>)motivosTuplas,
                 (string)observacionIngresada,
                 (IEnumerable<Sismografo>)_sismografos.AsReadOnly() // Pasar la lista de sismógrafos para mostrar en CCRS si es necesario

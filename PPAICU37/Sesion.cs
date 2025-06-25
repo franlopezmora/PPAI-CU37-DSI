@@ -24,16 +24,10 @@ namespace PPAICU37
             FechaHoraFin = DateTime.Now;
         }
 
-        public Usuario getUsuario()
+        public Empleado getUsuario()
         {
-            return UsuarioLogueado;
+            Empleado empleadoLogueado = UsuarioLogueado.getEmpleado();
+            return empleadoLogueado;
         }
-        public Empleado ObtenerEmpleadoLogueado()
-        {
-            if (UsuarioLogueado == null)
-            throw new InvalidOperationException("No hay sesión iniciada.");
-
-            return UsuarioLogueado.getEmpleado();
-         }
 }
 }

@@ -21,9 +21,9 @@ namespace PPAICU37
         {
         }
 
-        public bool esDeEmpleado(Usuario UsuarioEmpleado)
+        public bool esDeEmpleado(Empleado EmpleadoLogueado)
         {
-            return Empleado == UsuarioEmpleado.Empleado;
+            return Empleado == EmpleadoLogueado;
         }
 
         public bool esCompletamenteRealizada()
@@ -34,7 +34,7 @@ namespace PPAICU37
         public string[] getInfoOrdenInspeccion(List<Sismografo> sismografos)
         {
             string nombreEstacion = EstacionSismologica.getNombre();
-            string idSismografo = EstacionSismologica.buscarIdSismografo(sismografos); // Asegura que se busque el sismógrafo asociado a la estación
+            string idSismografo = EstacionSismologica.buscarIdSismografo(sismografos);
             DateTime? fechaHoraFinalizacion = this.fechaHoraFinalizacion;
             string[] info = new string[]
             {
@@ -53,9 +53,10 @@ namespace PPAICU37
             this.Estado = estadoCerrado;
         }
 
-        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
         {
-            EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, sismografos);
+            string nombreEstadoFueraServicio = EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, sismografos);
+            return nombreEstadoFueraServicio;
         }
     }
 }
