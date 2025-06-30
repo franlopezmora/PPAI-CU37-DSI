@@ -184,7 +184,7 @@ namespace PPAICU37
             {
                 OrdenDeInspeccion orden = ordenes[i]; // Obtiene la orden actual
 
-                if (orden.Estado.esCompletamenteRealizada() && orden.esDeEmpleado(responsableLogueado))
+                if (orden.esCompletamenteRealizada() && orden.esDeEmpleado(responsableLogueado))
                 {
                     infoOrden = orden.getInfoOrdenInspeccion(_sismografos);
                     idSismografoSeleccionado = infoOrden[2]; // Asigna el ID del sismógrafo seleccionado
