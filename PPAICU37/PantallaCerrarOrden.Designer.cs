@@ -39,6 +39,8 @@
             btnIniciarSesion = new Button();
             btnSeleccionarOrden = new Button();
             btnConfirmarObservacion = new Button();
+            cmbDestinoNotificacion = new ComboBox();
+            cmbDestinoNotificacion.Enabled = false;
             ((System.ComponentModel.ISupportInitialize)grillaOrdenes).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grillaMotivos).BeginInit();
             SuspendLayout();
@@ -146,11 +148,24 @@
             btnConfirmarObservacion.UseVisualStyleBackColor = true;
             btnConfirmarObservacion.Click += ingresarObservacion;
             // 
+            // cmbDestinoNotificacion
+            // 
+            cmbDestinoNotificacion.FormattingEnabled = true;
+            cmbDestinoNotificacion.Items.AddRange(new object[] { "Ambas", "Solo interfaz mail", "Solo pantalla CCRS" });
+            cmbDestinoNotificacion.Location = new Point(281, 509);
+            cmbDestinoNotificacion.Name = "cmbDestinoNotificacion";
+            cmbDestinoNotificacion.Size = new Size(200, 23);
+            cmbDestinoNotificacion.TabIndex = 11;
+            cmbDestinoNotificacion.SelectedIndex = 0; // Default: Ambas
+            cmbDestinoNotificacion.SelectedIndexChanged += cmbDestinoNotificacion_SelectedIndexChanged;
+
+            // 
             // PantallaCerrarOrden
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(758, 549);
+            Controls.Add(cmbDestinoNotificacion);
             Controls.Add(btnConfirmarObservacion);
             Controls.Add(btnSeleccionarOrden);
             Controls.Add(btnIniciarSesion);
@@ -189,5 +204,6 @@
         private DataGridView grillaOrdenes;
         private TextBox txtComentario;
         private DataGridView grillaMotivos;
+        private ComboBox cmbDestinoNotificacion;
     }
 }
