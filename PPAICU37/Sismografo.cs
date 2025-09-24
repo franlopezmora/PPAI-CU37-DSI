@@ -24,7 +24,7 @@ namespace PPAICU37
             return identificadorSismografo;
         }
 
-        public void ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio)
+        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio)
         {
             var cambioEstadoActualActivo = CambioEstado.FirstOrDefault(h => h.esActual());
             if (cambioEstadoActualActivo != null)
@@ -33,7 +33,9 @@ namespace PPAICU37
             }
             CambioEstado nuevoCambio = PPAICU37.CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio);
             CambioEstado.Add(nuevoCambio);
+            string nombreEstadoFueraServicio = estadoFueraServicio.nombreEstado;
 
+            return nombreEstadoFueraServicio;
         }
     }
 }
