@@ -59,74 +59,20 @@ namespace PPAICU37
 
         private void cargarDatosDePrueba()
         {
-            // Estados
-            var estadoPendiente = new Estado { nombreEstado = "Pendiente de Inspección", ambito = "OrdenInspeccion" };
-            var estadoRealizada = new Estado { nombreEstado = "Completamente Realizada", ambito = "OrdenInspeccion" };
-            var estadoCerrada = new Estado { nombreEstado = "Cerrada", ambito = "OrdenInspeccion" };
-            var estadoFueraServicio = new Estado { nombreEstado = "Fuera de Servicio", ambito = "Sismografo" };
-            var estadoOperativo = new Estado { nombreEstado = "Operativo", ambito = "Sismografo" };
-            _estadosPosibles.AddRange(new[] { estadoPendiente, estadoRealizada, estadoCerrada, estadoFueraServicio, estadoOperativo });
-
-            // Roles
-            var rolInspector = new Rol { NombreRol = "Inspector", DescripcionRol = "Realiza inspecciones" };
-            var rolReparador = new Rol { NombreRol = "Responsable de Reparaciones", DescripcionRol = "Repara sismógrafos" };
-
-            // Empleados y Usuarios
-            var empleado1 = new Empleado { nombre = "Juan", apellido = "Perez", mail = "juan.perez@example.com", telefono = "123456" };
-        
-            empleado1.Rol = rolReparador;
-            var usuario1 = new Usuario { nombreUsuario = "jperez", contrasena = "123", Empleado = empleado1 };
-            _empleadosRegistrados.Add(empleado1);
-            _usuariosRegistrados.Add(usuario1);
-
-            var empleado2 = new Empleado { nombre = "Ana", apellido = "Lopez", mail = "ana.lopez@example.com", telefono = "789012" };
-            empleado2.Rol = rolReparador;
-            var usuario2 = new Usuario { nombreUsuario = "alopez", contrasena = "456", Empleado = empleado2 };
-            _empleadosRegistrados.Add(empleado2);
-            _usuariosRegistrados.Add(usuario2);
-
-            // MotivoTipos
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo (1, "Falla de sensor" ));
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo (2, "Problema de alimentación" ));
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo (3, "Mantenimiento programado"));
-            _tiposDeMotivoDisponibles.Add(new MotivoTipo (4, "Otro"));
-
-            // Estaciones y Sismógrafos
-            var estacion1 = new EstacionSismologica { codigoEstacion = "EST001", nombreEstacion = "Central Cordoba" };
-
-        //    CambioEstado cambioEstado1 = CambioEstado.crear(sismo1.FechaAdquisicion, null, estadoOperativo); // Estado inicial
-            var sismo1 = new Sismografo { identificadorSismografo = "SISM001", nroSerie = "SN111", fechaAdquisicion = DateTime.Now.AddYears(-2), EstacionSismologica = estacion1 };
+            // Cargar datos desde la base de datos (orden correcto: primero las dependencias)
+            _estadosPosibles = DataAccess.CargarEstados();
             
-            sismo1.CambioEstado.Add(CambioEstado.crear(sismo1.fechaAdquisicion, null, estadoOperativo)); // Estado inicial
-
-
-          //  CambioEstado cambioEstado2 = CambioEstado.crear(sismo2.FechaAdquisicion, null, estadoOperativo); // Estado inicial
-            var sismo2 = new Sismografo { identificadorSismografo = "SISM002", nroSerie = "SN222", fechaAdquisicion = DateTime.Now.AddYears(-1), EstacionSismologica = estacion1 };
-            sismo2.CambioEstado.Add(CambioEstado.crear(sismo2.fechaAdquisicion, null, estadoOperativo)); // Estado inicial
-
-            // estacion1.Sismografos.AddRange(new[] { sismo1, sismo2 });   ELIMINAR ESTO URGENTE
-            _estaciones.Add(estacion1);
-
-            // Órdenes de Inspección de ejemplo
-            var ordenesGlobales = new List<OrdenDeInspeccion>();
-            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 101, fechaHoraInicio = DateTime.Now.AddDays(-10), fechaHoraFinalizacion = DateTime.Now.AddDays(-8), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo1.EstacionSismologica, observacionCierre = "Muy mal"});
-            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 102, fechaHoraInicio = DateTime.Now.AddDays(-5), fechaHoraFinalizacion = DateTime.Now.AddDays(-3), Estado = estadoRealizada, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
-            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 103, fechaHoraInicio = DateTime.Now.AddDays(-2), Estado = estadoPendiente, Empleado = empleado1, EstacionSismologica = sismo2.EstacionSismologica });
-            ordenesGlobales.Add(new OrdenDeInspeccion { numeroOrden = 104, fechaHoraInicio = DateTime.Now.AddDays(-15), fechaHoraFinalizacion = DateTime.Now.AddDays(-12), Estado = estadoRealizada, Empleado = empleado1 , EstacionSismologica = sismo1.EstacionSismologica});
-
-            // Usuarios
-            var usuarioLogueado = new Usuario
-            {
-                nombreUsuario = "jperez",
-                contrasena = "123",
-                Empleado = empleado1
-            };
-            // Sismografos
-            _sismografos = new List<Sismografo> { sismo1, sismo2 };
-
-            // Asignar las órdenes a la lista que usa el controlador para las operaciones.
-            // En un escenario real, estas se obtendrían de una fuente de datos.
-            this.ordenes = ordenesGlobales;
+            var roles = DataAccess.CargarRoles();
+            _empleadosRegistrados = DataAccess.CargarEmpleados(roles);
+            _usuariosRegistrados = DataAccess.CargarUsuarios(_empleadosRegistrados);
+            
+            _tiposDeMotivoDisponibles = DataAccess.CargarMotivosTipo();
+            
+            _estaciones = DataAccess.CargarEstaciones();
+            _sismografos = DataAccess.CargarSismografos(_estaciones, _estadosPosibles);
+            
+            // Cargar órdenes al final, después de tener empleados, estaciones y estados
+            ordenes = DataAccess.CargarOrdenesInspeccion(_empleadosRegistrados, _estaciones, _estadosPosibles);
         }
 
         public IReadOnlyList<Sismografo> Sismografos
@@ -284,11 +230,11 @@ namespace PPAICU37
             bool validacionObs = validarObservacion();
             bool validacionMotivoCom = validarMotivoSeleccionado();
             Estado estadoCerrado = buscarEstadoCerrado();
-            Estado estadoFueraServicio = buscarEstadoFueraServicio();
             DateTime fechaActual = getFechaHoraActual();
             fechaHoraActual = fechaActual;
 
-            bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, estadoFueraServicio, fechaActual);
+            // El estado actual del sismógrafo decide a qué estado transicionar (patrón State)
+            bool exitoCerrar = cerrarOrden(validacionMotivoCom, validacionMotivoCom, estadoCerrado, fechaActual);
 
             if (exitoCerrar)
             {
@@ -329,14 +275,14 @@ namespace PPAICU37
             return DateTime.Now;
         }
 
-        public bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, Estado estadoCerrado, Estado estadoFueraServicio, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU)
+        public bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, Estado estadoCerrado, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU)
         {
             if (ordenSeleccionada == null || !validacionObs || !validacionMotivoCom)
             {
                 return false; // Validaciones fallaron
             }
 
-            if (estadoCerrado == null || estadoFueraServicio == null)
+            if (estadoCerrado == null)
             {
                 return false;
             }
@@ -345,15 +291,16 @@ namespace PPAICU37
             ordenSeleccionada.registrarCierreOrden(fechaActual, observacionIngresada, estadoCerrado);
 
             // Paso 12: Actualiza al sismógrafo como fuera de servicio, asociando motivos, fecha, y responsable [cite: 2]
-
-            ponerFueraServicio(estadoFueraServicio, fechaActual); // Delegar lógica a la entidad OrdenDeInspeccion
+            // El estado actual del sismógrafo decide a qué estado transicionar (patrón State)
+            ponerFueraServicio(fechaActual);
 
             return true;
         }
 
-        public void ponerFueraServicio(Estado estadoFueraServicio, DateTime fechaActual)
+        public void ponerFueraServicio(DateTime fechaActual)
         {
-            string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHoraActual, listaMotivosTipoComentario, estadoFueraServicio, _sismografos);
+            // El estado actual del sismógrafo decide a qué estado transicionar
+            string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHoraActual, listaMotivosTipoComentario, _sismografos, responsableLogueado);
             
             nombreEstadoActualFueraServicio = nombreEstadoFueraServicio;
         }

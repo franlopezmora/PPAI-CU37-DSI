@@ -5,6 +5,9 @@ namespace PPAICU37
         [STAThread]
         static void Main()
         {
+            // Inicializar la base de datos antes de iniciar la aplicación
+            DbInit.EnsureDatabase();
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();

@@ -17,11 +17,12 @@ namespace PPAICU37
         {
         }
 
-        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, List<Sismografo> sismografos, Empleado responsableLogueado)
         {
             Sismografo sismografoAsociado = buscarSismografo(sismografos);
 
-            string nombreEstadoFueraServicio = sismografoAsociado.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio);
+            // El estado actual del sismógrafo decide a qué estado transicionar
+            string nombreEstadoFueraServicio = sismografoAsociado.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, responsableLogueado);
 
             return nombreEstadoFueraServicio;
         }

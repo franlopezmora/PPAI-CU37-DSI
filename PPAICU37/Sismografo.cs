@@ -12,7 +12,8 @@ namespace PPAICU37
         public string nroSerie { get; set; }
         public DateTime fechaAdquisicion { get; set; }
         public EstacionSismologica EstacionSismologica { get; set; }
-        public List<CambioEstado> CambioEstado { get; private set; }
+        public List<CambioEstado> CambioEstado { get; set; }
+        public Estado estadoActual { get; set; }
 
         public Sismografo()
         {
@@ -24,18 +25,16 @@ namespace PPAICU37
             return identificadorSismografo;
         }
 
-        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio)
+        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Empleado responsableLogueado)
         {
-            var cambioEstadoActualActivo = CambioEstado.FirstOrDefault(h => h.esActual());
-            if (cambioEstadoActualActivo != null)
+            // Delegar al estado actual (patrón State)
+            // El estado actual decide a qué estado transicionar
+            if (estadoActual == null)
             {
-                cambioEstadoActualActivo.finalizar(fechaHora);
+                throw new InvalidOperationException("El sismógrafo no tiene un estado actual asignado.");
             }
-            CambioEstado nuevoCambio = PPAICU37.CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio);
-            CambioEstado.Add(nuevoCambio);
-            string nombreEstadoFueraServicio = estadoFueraServicio.nombreEstado;
-
-            return nombreEstadoFueraServicio;
+            
+            return estadoActual.ponerSismografoFueraDeServicio(this, fechaHora, listaMotivosTipoComentario, CambioEstado, responsableLogueado);
         }
     }
 }

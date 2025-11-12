@@ -48,14 +48,19 @@ namespace PPAICU37
 
         public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
         {
+            // Persistir en base de datos
+            DataAccess.ActualizarOrdenInspeccion(numeroOrden, fechaHoraCierre, observacion, estadoCerrado);
+            
+            // Actualizar en memoria
             this.fechaHoraCierre = fechaHoraCierre;
             this.observacionCierre = observacion;
             this.Estado = estadoCerrado;
         }
 
-        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, Estado estadoFueraServicio, List<Sismografo> sismografos)
+        public string ponerSismografoFueraDeServicio(DateTime fechaHora, List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario, List<Sismografo> sismografos, Empleado responsableLogueado)
         {
-            string nombreEstadoFueraServicio = EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, sismografos);
+            // El estado actual del sismógrafo decide a qué estado transicionar
+            string nombreEstadoFueraServicio = EstacionSismologica.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, sismografos, responsableLogueado);
             return nombreEstadoFueraServicio;
         }
     }

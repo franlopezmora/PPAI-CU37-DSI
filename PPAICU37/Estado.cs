@@ -6,38 +6,51 @@ using System.Threading.Tasks;
 
 namespace PPAICU37
 {
-    public class Estado
+    public abstract class Estado
     {
-        public string nombreEstado { get; set; }
-        public string ambito { get; set; }
+        public abstract string nombreEstado { get; }
+        public abstract string ambito { get; }
 
-        public bool esCompletamenteRealizada()
+        // --- Métodos de consulta (helpers) ---
+        public virtual bool esCompletamenteRealizada()
         {
-            return nombreEstado == "Completamente Realizada";
-        }
-
-        public bool esCerrado()
-        {
-            return nombreEstado == "Cerrada";
+            return false;
         }
 
-        public bool esFueraDeServicio()
+        public virtual bool esCerrado()
         {
-            return nombreEstado == "Fuera de Servicio";
+            return false;
         }
 
-        public bool esAmbitoOrden()
+        public virtual bool esFueraDeServicio()
         {
-            if (ambito == "OrdenInspeccion") 
-            { return true; }
-            else { return false; }
+            return false;
         }
-        public bool esAmbitoSismografo()
+
+        public virtual bool esInhabilitadoPorInspeccion()
         {
-            if (ambito == "Sismografo")
-            { return true; }
-            else { return false; }
+            return false;
         }
+
+        public virtual bool esAmbitoOrden()
+        {
+            return ambito == "OrdenInspeccion";
+        }
+
+        public virtual bool esAmbitoSismografo()
+        {
+            return ambito == "Sismografo";
+        }
+
+        // --- Acciones "comunes" con default que lanza excepción ---
+        public virtual string ponerSismografoFueraDeServicio(
+            Sismografo sismografo, 
+            DateTime fechaHora, 
+            List<Tuple<string, MotivoTipo>> motivosTipoComentario, 
+            List<CambioEstado> cambiosEstado,
+            Empleado responsableLogueado
+            )
+            => throw new InvalidOperationException($"'{nombreEstado}' no permite poner fuera de servicio.");
 
         public override string ToString()
         {

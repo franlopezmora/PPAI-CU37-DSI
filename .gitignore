@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Base de datos SQLite generada en runtime
+data/
+PPAICU37/data/
