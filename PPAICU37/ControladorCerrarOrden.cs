@@ -297,10 +297,10 @@ namespace PPAICU37
             return true;
         }
 
-        public void ponerFueraServicio(DateTime fechaActual)
+        public void ponerFueraServicio(DateTime fechaHora)
         {
             // El estado actual del sismógrafo decide a qué estado transicionar
-            string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHoraActual, listaMotivosTipoComentario, _sismografos, responsableLogueado);
+            string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, _sismografos, responsableLogueado);
             
             nombreEstadoActualFueraServicio = nombreEstadoFueraServicio;
         }

@@ -23,14 +23,14 @@ public class InhabilitadoPorInspeccion : Estado
         Empleado responsableLogueado)
     {
         // 1. Finalizar el cambio de estado actual (en memoria)
-        var actual = cambiosEstado.FirstOrDefault(h => h.esActual());
+        CambioEstado actual = cambiosEstado.FirstOrDefault(h => h.esActual());
         actual?.finalizar(fechaHora);
         
         // El estado decide a qué estado transicionar
-        var estadoSiguiente = new FueraDeServicio();
+        Estado estadoSiguiente = crearEstado();
         
         // 2. Crear nuevo cambio de estado (en memoria)
-        var nuevo = CambioEstado.crear(fechaHora, motivosTipoComentario, estadoSiguiente, responsableLogueado);
+        CambioEstado nuevo = crearCambioEstado(fechaHora, motivosTipoComentario, estadoSiguiente, responsableLogueado);
         cambiosEstado.Add(nuevo);
 
         // 3. Actualizar estado actual del sismógrafo (en memoria)
@@ -64,5 +64,18 @@ public class InhabilitadoPorInspeccion : Estado
         }
 
         return estadoSiguiente.nombreEstado;
+    }
+
+    public override Estado crearEstado()
+    {
+        FueraDeServicio estado = new FueraDeServicio();
+        return estado;
+    }
+    
+    public override CambioEstado crearCambioEstado(DateTime fechaHora, List<Tuple<string, MotivoTipo>> motivosTipoComentario, Estado estadoSiguiente, Empleado responsableLogueado)
+    {
+        CambioEstado nuevo = CambioEstado.crear(fechaHora, motivosTipoComentario, estadoSiguiente, responsableLogueado);
+        
+        return nuevo;
     }
 }

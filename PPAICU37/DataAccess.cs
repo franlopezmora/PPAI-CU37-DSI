@@ -456,21 +456,21 @@ namespace PPAICU37
             }
         }
 
-        // Método de compatibilidad (mantener por si se usa en otros lugares)
-        [Obsolete("Usar PersistirCambioEstado en su lugar")]
-        public static int PonerSismografoFueraDeServicio(
-            string sismografoId,
-            DateTime fechaHora,
-            List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario,
-            Estado estadoFueraServicio,
-            Empleado responsableLogueado)
-        {
-            // Crear el cambio de estado en memoria primero
-            var nuevoCambio = CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, responsableLogueado);
-            
-            // Usar el nuevo método
-            return PersistirCambioEstado(sismografoId, null, nuevoCambio);
-        }
+
+        // [Obsolete("Usar PersistirCambioEstado en su lugar")]
+        // public static int PonerSismografoFueraDeServicio(
+        //     string sismografoId,
+        //     DateTime fechaHora,
+        //     List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario,
+        //     Estado estadoFueraServicio,
+        //     Empleado responsableLogueado)
+        // {
+        //     // Crear el cambio de estado en memoria primero
+        //     var nuevoCambio = CambioEstado.crear(fechaHora, listaMotivosTipoComentario, estadoFueraServicio, responsableLogueado);
+        //     
+        //     // Usar el nuevo método
+        //     return PersistirCambioEstado(sismografoId, null, nuevoCambio);
+        // }
 
         public static void ActualizarOrdenInspeccion(
             int numeroOrden,

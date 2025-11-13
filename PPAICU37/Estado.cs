@@ -56,5 +56,15 @@ namespace PPAICU37
         {
             return nombreEstado;
         }
+
+        public virtual Estado crearEstado()
+        {
+            return null;
+        }
+        
+        public virtual CambioEstado crearCambioEstado(DateTime fechaHora, List<Tuple<string, MotivoTipo>> motivosTipoComentario, Estado estadoSiguiente, Empleado responsableLogueado)
+        {
+            return new CambioEstado();
+        }
     }
 }
