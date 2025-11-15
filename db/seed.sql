@@ -12,8 +12,15 @@ INSERT OR IGNORE INTO estados (nombre_estado, ambito) VALUES
     ('Completamente Realizada', 'OrdenInspeccion'),
     ('Cerrada', 'OrdenInspeccion'),
     ('Fuera de Servicio', 'Sismografo'),
-    ('Operativo', 'Sismografo'),
-    ('Inhabilitado por Inspección', 'Sismografo');
+    ('Inhabilitado por Inspección', 'Sismografo'),
+    ('Disponible', 'Sismografo'),
+    ('En Espera', 'Sismografo'),
+    ('Habilitado a Ser Incluido', 'Sismografo'),
+    ('En Instalación', 'Sismografo'),
+    ('Incluido en Plan de Construcción', 'Sismografo'),
+    ('Reclamado', 'Sismografo'),
+    ('Habilitado', 'Sismografo'),
+    ('De Baja', 'Sismografo');
 
 -- Insertar Empleados
 INSERT OR IGNORE INTO empleados (id, nombre, apellido, mail, telefono, rol_id) VALUES
@@ -29,10 +36,10 @@ INSERT OR IGNORE INTO usuarios (id, nombre_usuario, contrasena, empleado_id) VAL
 INSERT OR IGNORE INTO estaciones_sismologicas (codigo_estacion, nombre_estacion, latitud, longitud) VALUES
     ('EST001', 'Central Cordoba', -31.4201, -64.1888);
 
--- Insertar Sismógrafos (con estado Inhabilitado por Inspección - id 6)
+-- Insertar Sismógrafos (con estado Inhabilitado por Inspección - id 5)
 INSERT OR IGNORE INTO sismografos (identificador_sismografo, nro_serie, fecha_adquisicion, estacion_id, estado_actual_id) VALUES
-    ('SISM001', 'SN111', datetime('now', '-2 years'), 'EST001', 6),
-    ('SISM002', 'SN222', datetime('now', '-1 year'), 'EST001', 6);
+    ('SISM001', 'SN111', datetime('now', '-2 years'), 'EST001', 5),
+    ('SISM002', 'SN222', datetime('now', '-1 year'), 'EST001', 5);
 
 -- Insertar Tipos de Motivo
 INSERT OR IGNORE INTO motivos_tipo (id_tipo, descripcion) VALUES
@@ -51,5 +58,5 @@ INSERT OR IGNORE INTO ordenes_inspeccion (numero_orden, fecha_hora_inicio, fecha
 
 -- Insertar Cambios de Estado iniciales para los sismógrafos (estado Inhabilitado por Inspeccion)
 INSERT OR IGNORE INTO cambios_estado (id, fecha_hora_inicio, fecha_hora_fin, estado_id, sismografo_id) VALUES
-    (1, datetime('now', '-2 years'), NULL, 6, 'SISM001'),  -- SISM001 inhabilitado por inspeccion desde hace 2 años
-    (2, datetime('now', '-1 year'), NULL, 6, 'SISM002');     -- SISM002 inhabilitado por inspeccion desde hace 1 año
+    (1, datetime('now', '-2 years'), NULL, 5, 'SISM001'),  -- SISM001 inhabilitado por inspeccion desde hace 2 años
+    (2, datetime('now', '-1 year'), NULL, 5, 'SISM002');     -- SISM002 inhabilitado por inspeccion desde hace 1 año

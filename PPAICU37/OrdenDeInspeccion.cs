@@ -13,7 +13,7 @@ namespace PPAICU37
         public DateTime? fechaHoraFinalizacion { get; set; }
         public DateTime? fechaHoraCierre { get; set; }
         public string observacionCierre { get; set; }
-        public Estado Estado { get; set; }
+        public EstadoOrden Estado { get; set; }
         public Empleado Empleado { get; set; }
         public EstacionSismologica EstacionSismologica { get; set; } 
 
@@ -46,7 +46,7 @@ namespace PPAICU37
             return info;
         }
 
-        public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, Estado estadoCerrado)
+        public void registrarCierreOrden(DateTime fechaHoraCierre, string observacion, EstadoOrden estadoCerrado)
         {
             // Persistir en base de datos
             DataAccess.ActualizarOrdenInspeccion(numeroOrden, fechaHoraCierre, observacion, estadoCerrado);

@@ -23,12 +23,13 @@ namespace PPAICU37
 
         private List<Usuario> _usuariosRegistrados;
         private List<Empleado> _empleadosRegistrados;
-        private List<Estado> _estadosPosibles;
+        private List<Estado> _estadosPosibles; // Estados de sismógrafos (con patrón State)
+        private List<EstadoOrden> _estadosOrden; // Estados de órdenes (sin patrón State)
         private List<MotivoTipo> _tiposDeMotivoDisponibles;
         private List<EstacionSismologica> _estaciones; // Lista de estaciones
         private Sesion _sesionActual;
         private EstacionSismologica _estacionSeleccionada;
-        public List<Sismografo> _sismografos; // Lista de sismógrafos
+        private List<Sismografo> _sismografos; // Lista de sismógrafos
         public List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario;
         private DestinoNotificacion destinoNotificacion = DestinoNotificacion.Ambas;
         private string idSismografoSeleccionado;
@@ -46,7 +47,8 @@ namespace PPAICU37
             listaMotivosTipoComentario = new List<Tuple<string, MotivoTipo>>(); // Inicializa la lista de motivos y comentarios
             _usuariosRegistrados = new List<Usuario>();
             _empleadosRegistrados = new List<Empleado>();
-            _estadosPosibles = new List<Estado>();
+            _estadosPosibles = new List<Estado>(); // Estados de sismógrafos
+            _estadosOrden = new List<EstadoOrden>(); // Estados de órdenes
             _tiposDeMotivoDisponibles = new List<MotivoTipo>();
             ordenes = new List<OrdenDeInspeccion>(); // Esta se llenará dinámicamente
             _estaciones = new List<EstacionSismologica>();
@@ -60,7 +62,8 @@ namespace PPAICU37
         private void cargarDatosDePrueba()
         {
             // Cargar datos desde la base de datos (orden correcto: primero las dependencias)
-            _estadosPosibles = DataAccess.CargarEstados();
+            _estadosPosibles = DataAccess.CargarEstados(); // Estados de sismógrafos (con patrón State)
+            _estadosOrden = DataAccess.CargarEstadosOrden(); // Estados de órdenes (sin patrón State)
             
             var roles = DataAccess.CargarRoles();
             _empleadosRegistrados = DataAccess.CargarEmpleados(roles);
@@ -72,7 +75,7 @@ namespace PPAICU37
             _sismografos = DataAccess.CargarSismografos(_estaciones, _estadosPosibles);
             
             // Cargar órdenes al final, después de tener empleados, estaciones y estados
-            ordenes = DataAccess.CargarOrdenesInspeccion(_empleadosRegistrados, _estaciones, _estadosPosibles);
+            ordenes = DataAccess.CargarOrdenesInspeccion(_empleadosRegistrados, _estaciones, _estadosOrden);
         }
 
         public IReadOnlyList<Sismografo> Sismografos
@@ -103,12 +106,12 @@ namespace PPAICU37
             return null;
         }
 
-        public Usuario login(string nombreUsuario, string contrasena)
+        private Usuario login(string nombreUsuario, string contrasena)
         {
             return _usuariosRegistrados.FirstOrDefault(u => u.nombreUsuario == nombreUsuario && u.contrasena == contrasena);
         }
 
-        public Empleado buscarUsuario(Sesion _sesionActual)
+        private Empleado buscarUsuario(Sesion _sesionActual)
         {
             Empleado empleadoBuscado = _sesionActual.getUsuario();
 
@@ -145,7 +148,7 @@ namespace PPAICU37
             return tablaGenerada; // Retorna la lista filtrada
         }
 
-        public DataTable generarTablaOrdenes(List<string[]> listaResultado)
+        private DataTable generarTablaOrdenes(List<string[]> listaResultado)
         {
             // 1) Construyo un DataTable con todas las columnas que quiero ver
             var dt = new DataTable();
@@ -167,7 +170,7 @@ namespace PPAICU37
             return dt;
         }
 
-        public void ordenarPorFecha(List<OrdenDeInspeccion> OrdenesFiltradas)
+        private void ordenarPorFecha(List<OrdenDeInspeccion> OrdenesFiltradas)
         {
             OrdenesFiltradas = OrdenesFiltradas.OrderByDescending(o => o.fechaHoraFinalizacion ?? DateTime.MinValue).ToList();
         }
@@ -191,7 +194,7 @@ namespace PPAICU37
             return buscarTiposMotivos();
         }
 
-        public List<MotivoTipo> buscarTiposMotivos() // Paso 6 CU (cargar tipos para UI)
+        private List<MotivoTipo> buscarTiposMotivos() // Paso 6 CU (cargar tipos para UI)
         {
 
             List<MotivoTipo> listaMotivosEncontrados = new List<MotivoTipo>();
@@ -229,7 +232,7 @@ namespace PPAICU37
 
             bool validacionObs = validarObservacion();
             bool validacionMotivoCom = validarMotivoSeleccionado();
-            Estado estadoCerrado = buscarEstadoCerrado();
+            EstadoOrden estadoCerrado = buscarEstadoCerrado();
             DateTime fechaActual = getFechaHoraActual();
             fechaHoraActual = fechaActual;
 
@@ -260,22 +263,22 @@ namespace PPAICU37
             return listaMotivosTipoComentario.Any();
         }
 
-        public Estado buscarEstadoCerrado()
+        private EstadoOrden buscarEstadoCerrado()
         {
-            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoOrden() && e.esCerrado());
+            return _estadosOrden.FirstOrDefault(e => e.esCerrado());
         }
 
-        public Estado buscarEstadoFueraServicio()
+        private Estado buscarEstadoFueraServicio() // No se usa más luego de haber aplicado el patrón
         {
-            return _estadosPosibles.FirstOrDefault(e => e.esAmbitoSismografo() && e.esFueraDeServicio());
+            return _estadosPosibles.FirstOrDefault(e => e.esFueraDeServicio());
         }
 
-        public DateTime getFechaHoraActual()
+        private DateTime getFechaHoraActual()
         {
             return DateTime.Now;
         }
 
-        public bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, Estado estadoCerrado, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU)
+        private bool cerrarOrden(bool validacionObs, bool validacionMotivoCom, EstadoOrden estadoCerrado, DateTime fechaActual) // Lógica principal de cierre (Pasos 10, 11, 12 CU)
         {
             if (ordenSeleccionada == null || !validacionObs || !validacionMotivoCom)
             {
@@ -297,7 +300,7 @@ namespace PPAICU37
             return true;
         }
 
-        public void ponerFueraServicio(DateTime fechaHora)
+        private void ponerFueraServicio(DateTime fechaHora)
         {
             // El estado actual del sismógrafo decide a qué estado transicionar
             string nombreEstadoFueraServicio = ordenSeleccionada.ponerSismografoFueraDeServicio(fechaHora, listaMotivosTipoComentario, _sismografos, responsableLogueado);
@@ -306,7 +309,7 @@ namespace PPAICU37
         }
 
         // Paso 13 CU: Notificaciones
-        public void notificarViaMail()
+        private void notificarViaMail()
         {
             List<string> EmailsResponsablesReparacion = new List<string>();
 
@@ -350,7 +353,7 @@ namespace PPAICU37
             MessageBox.Show($"Notificaciones enviadas (simulado a: {string.Join(", ", listadoMails)}). \n\nContenido:\n{cuerpoMail}", "Notificación", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public void actualizarPantallaCCRS()
+        private void actualizarPantallaCCRS()
         {
             if (ordenSeleccionada == null || idSismografoSeleccionado == null) 
                     return;

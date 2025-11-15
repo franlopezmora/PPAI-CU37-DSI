@@ -21,19 +21,26 @@ namespace PPAICU37
             con.Open();
 
             using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT id, nombre_estado, ambito FROM estados";
+            cmd.CommandText = "SELECT id, nombre_estado FROM estados WHERE ambito = 'Sismografo'";
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 var nombreEstado = reader.GetString("nombre_estado");
-                var ambito = reader.GetString("ambito");
 
                 Estado estado = nombreEstado switch
                 {
                     "Fuera de Servicio" => new FueraDeServicio(),
                     "Inhabilitado por Inspección" => new InhabilitadoPorInspeccion(),
-                    _ => CrearEstadoGenerico(nombreEstado, ambito)
+                    "Disponible" => new Disponible(),
+                    "En Espera" => new EnEspera(),
+                    "Habilitado a Ser Incluido" => new HabilitadoASerIncluido(),
+                    "En Instalación" => new EnInstalacion(),
+                    "Incluido en Plan de Construcción" => new IncluidoEnPlanContruccion(),
+                    "Reclamado" => new Reclamado(),
+                    "Habilitado" => new Habilitado(),
+                    "De Baja" => new DeBaja(),
+                    _ => CrearEstadoGenerico(nombreEstado)
                 };
 
                 estados.Add(estado);
@@ -42,10 +49,31 @@ namespace PPAICU37
             return estados;
         }
 
-        private static Estado CrearEstadoGenerico(string nombreEstado, string ambito)
+        public static List<EstadoOrden> CargarEstadosOrden()
+        {
+            var estados = new List<EstadoOrden>();
+            using var con = new SqliteConnection(GetConnectionString());
+            con.Open();
+
+            using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT id, nombre_estado, ambito FROM estados WHERE ambito = 'OrdenInspeccion'";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var nombreEstado = reader.GetString("nombre_estado");
+                var ambito = reader.GetString("ambito");
+
+                estados.Add(new EstadoOrden(nombreEstado, ambito));
+            }
+
+            return estados;
+        }
+
+        private static Estado CrearEstadoGenerico(string nombreEstado)
         {
             // Para estados que aún no tienen clase específica, creamos una clase genérica
-            return new EstadoGenerico(nombreEstado, ambito);
+            return new EstadoGenerico(nombreEstado);
         }
 
         public static List<Rol> CargarRoles()
@@ -203,7 +231,7 @@ namespace PPAICU37
                 if (!reader.IsDBNull("estado_nombre"))
                 {
                     var estadoNombre = reader.GetString("estado_nombre");
-                    sismografo.estadoActual = estados.FirstOrDefault(e => e.nombreEstado == estadoNombre);
+                    sismografo.EstadoActual = estados.FirstOrDefault(e => e.nombreEstado == estadoNombre);
                 }
 
                 // Cargar historial de cambios de estado
@@ -310,7 +338,7 @@ namespace PPAICU37
         public static List<OrdenDeInspeccion> CargarOrdenesInspeccion(
             List<Empleado> empleados, 
             List<EstacionSismologica> estaciones, 
-            List<Estado> estados)
+            List<EstadoOrden> estados)
         {
             var ordenes = new List<OrdenDeInspeccion>();
             using var con = new SqliteConnection(GetConnectionString());
@@ -476,7 +504,7 @@ namespace PPAICU37
             int numeroOrden,
             DateTime fechaHoraCierre,
             string observacion,
-            Estado estadoCerrado)
+            EstadoOrden estadoCerrado)
         {
             using var con = new SqliteConnection(GetConnectionString());
             con.Open();
@@ -502,26 +530,13 @@ namespace PPAICU37
     internal class EstadoGenerico : Estado
     {
         private readonly string _nombreEstado;
-        private readonly string _ambito;
 
-        public EstadoGenerico(string nombreEstado, string ambito)
+        public EstadoGenerico(string nombreEstado)
         {
             _nombreEstado = nombreEstado;
-            _ambito = ambito;
         }
 
         public override string nombreEstado => _nombreEstado;
-        public override string ambito => _ambito;
-
-        public override bool esCompletamenteRealizada()
-        {
-            return _nombreEstado == "Completamente Realizada";
-        }
-
-        public override bool esCerrado()
-        {
-            return _nombreEstado == "Cerrada";
-        }
 
         public override bool esFueraDeServicio()
         {

@@ -27,7 +27,7 @@ namespace PPAICU37
                 Estado = estado
             };
             
-            cambio.setFechaHora(fechaHoraInicio);
+            cambio.setFechaHoraInicio(fechaHoraInicio);
             cambio.setResponsableInspeccion(responsableLogueado);
             
             listaMotivosTipoComentario = listaMotivosTipoComentario ?? new List<Tuple<string, MotivoTipo>>();
@@ -41,25 +41,17 @@ namespace PPAICU37
             return fechaHoraFin == null;
         }
 
-        public void setMotivo(MotivoFueraServicio motivo)
-        {
-            if (motivo != null)
-            {
-                this.MotivoFueraServicio.Add(motivo);
-            }
-        }
-
-        public void setFechaHora(DateTime fechaHoraInicio)
+        private void setFechaHoraInicio(DateTime fechaHoraInicio)
         {
             this.fechaHoraInicio = fechaHoraInicio;
         }
 
-        public void setResponsableInspeccion(Empleado empleado)
+        private void setResponsableInspeccion(Empleado empleado)
         {
             this.Empleado = empleado;
         }
 
-        public void setMotivo(List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario)
+        private void setMotivo(List<Tuple<string, MotivoTipo>> listaMotivosTipoComentario)
         {
             MotivoFueraServicio motivo;
             for (int i = 0; i < listaMotivosTipoComentario.Count; i++)

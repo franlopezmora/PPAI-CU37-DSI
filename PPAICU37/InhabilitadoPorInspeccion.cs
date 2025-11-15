@@ -6,9 +6,9 @@ namespace PPAICU37;
 
 public class InhabilitadoPorInspeccion : Estado
 {
+    public InhabilitadoPorInspeccion() { }
+
     public override string nombreEstado => "Inhabilitado por Inspección";
-    
-    public override string ambito => "Sismografo";
 
     public override bool esInhabilitadoPorInspeccion()
     {
@@ -34,7 +34,7 @@ public class InhabilitadoPorInspeccion : Estado
         cambiosEstado.Add(nuevo);
 
         // 3. Actualizar estado actual del sismógrafo (en memoria)
-        sismografo.estadoActual = estadoSiguiente;
+        sismografo.EstadoActual = estadoSiguiente;
 
         // 4. Persistir en base de datos (después de tener todo en memoria)
         try
@@ -58,7 +58,7 @@ public class InhabilitadoPorInspeccion : Estado
             cambiosEstado.Remove(nuevo);
             
             // Restaurar estado anterior
-            sismografo.estadoActual = this;
+            sismografo.EstadoActual = this;
             
             throw new InvalidOperationException($"Error al persistir el cambio de estado: {ex.Message}", ex);
         }
@@ -66,16 +66,22 @@ public class InhabilitadoPorInspeccion : Estado
         return estadoSiguiente.nombreEstado;
     }
 
-    public override Estado crearEstado()
+    protected override Estado crearEstado()
     {
         FueraDeServicio estado = new FueraDeServicio();
         return estado;
     }
     
-    public override CambioEstado crearCambioEstado(DateTime fechaHora, List<Tuple<string, MotivoTipo>> motivosTipoComentario, Estado estadoSiguiente, Empleado responsableLogueado)
+    protected override CambioEstado crearCambioEstado(DateTime fechaHora, List<Tuple<string, MotivoTipo>> motivosTipoComentario, Estado estadoSiguiente, Empleado responsableLogueado)
     {
         CambioEstado nuevo = CambioEstado.crear(fechaHora, motivosTipoComentario, estadoSiguiente, responsableLogueado);
         
         return nuevo;
+    }
+
+    public override string ponerEnLinea()
+    {
+        // TODO: Implementar lógica de transición
+        return "";
     }
 }
